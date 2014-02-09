@@ -7,7 +7,7 @@
  * Each line/row should represent an instance of ContactImpl, 
  * and each column should represent a member field.
  */
-public class ContactImpl{
+public class ContactImpl implements Contact {
 	private final String name;
 	private final int ident;
 	private String notes;
@@ -21,8 +21,9 @@ public class ContactImpl{
 
 	/**
 	 * calls method which assesses whether ID is unique or not
-	 * by searching through Contact<List>
+	 * by searching through ContactSet (recursive)
 	 * while boolean is false, keep generating IDs
+	 * MOVE TO CLASS WHERE CONTACTSET IS?
 	 */
 	public int generateID(){
 		int randomNumber = (int)(Math.random()*1000);
