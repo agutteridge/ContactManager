@@ -1,7 +1,5 @@
 import java.util.Scanner;
 
-// extends ContactManager ???
-// rename ContactManagerImpl ???
 public class Main {
 	
 	public void contactImplTester(){
@@ -11,6 +9,19 @@ public class Main {
 		alice.addNotes("something something");
 		alice.addNotes("and again");
 		System.out.println(alice.getNotes());
+
+		System.out.println("");
+		System.out.println("Launching ContactManagerImpl tester...");
+		contactManagerImplTester();
+	}
+
+	public void contactManagerImplTester(){
+		ContactManagerImpl database = new ContactManagerImpl();
+		database.addNewContact("sam", "he is someone");
+		database.addNewContact("turtle", "he is a turtle");
+		database.addNewContact("ghost", "transparent & friendly");
+		database.getContacts(0,1,2,3,4,5,6,7,8,9,10);
+		database.getContacts("sam");		
 	}
 
 	public static void main(String[] args) {
