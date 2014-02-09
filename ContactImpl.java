@@ -12,23 +12,10 @@ public class ContactImpl implements Contact {
 	private final int ident;
 	private String notes;
 
-	public ContactImpl(String name){
+	public ContactImpl(String name, int ident){
 		this.name = name;
-		this.ident = generateID();
+		this.ident = ident;
 		this.notes = "";
-		// writeContact();
-	}
-
-	/**
-	 * calls method which assesses whether ID is unique or not
-	 * by searching through ContactSet (recursive)
-	 * while boolean is false, keep generating IDs
-	 * MOVE TO CLASS WHERE CONTACTSET IS?
-	 */
-	public int generateID(){
-		int randomNumber = (int)(Math.random()*1000);
-		System.out.println("ID for " + this.name + ": " + randomNumber);
-		return randomNumber;
 	}
 
 	public int getId(){
@@ -49,14 +36,5 @@ public class ContactImpl implements Contact {
 		} else {
 			this.notes += ", " + note;		
 		}
-		// writeContact();
-	}
-
-	/**
-	 * saves addition of/changes to contact by writing to
-	 * a tab-delimited file (Contacts.txt)
-	 */
-	public void writeContact(){
-		//methods
 	}
 }
