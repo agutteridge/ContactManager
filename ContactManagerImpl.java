@@ -60,7 +60,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	@Test
 	public void testAddNewContact(){
 		String output = prettyPrint(contactSet);
-		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");
 	}
 
 	public void addNewContact(String name, String notes) {
@@ -116,7 +116,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		Set<Contact> tempSet = getContacts(1);
 		String output = prettyPrint(tempSet);
 		System.out.println(output);		
-		assertEquals(output, "Sam, 1, ; ");
+		assertEquals(output, "Sam, 1, \r\n");
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		Set<Contact> tempSet = getContacts(0, 1);
 		String output = prettyPrint(tempSet);
 		System.out.println(output);		
-		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");		
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");		
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -140,7 +140,6 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		    for (int n = 0; n < contactArray.length; n++) { //iterating through contactSet
 		    	if (ids[i] == (contactArray[n].getId())) {
 		    		result.add(contactArray[n]);
-		    		System.out.println("found " + contactArray[n].getName());
 		    	}
 		    }	
 		}
@@ -157,7 +156,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		Set<Contact> tempSet = getContacts("Sam");
 		String output = prettyPrint(tempSet);
 		System.out.println(output);
-		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");
 	}
 
 	@Test
@@ -196,13 +195,19 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		return result;
 	}
 
+	/**
+	* Printing method - for testing only?
+	* 
+	* @param Set to be printed
+	* @return Formatted string of Contacts' names, IDs and Notes
+	*/
 	private String prettyPrint(Set<Contact> set){
 		Iterator<Contact> iterator = set.iterator();
 		String result = "";
 
 		while (iterator.hasNext()){
 			Contact person = iterator.next();	
-			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "; ";
+			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "\r\n";
 		}
 
 		return result;
