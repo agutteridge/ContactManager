@@ -4,67 +4,130 @@ import java.util.Set;
 import java.util.*;
 import org.junit.*;
 import static org.junit.Assert.*;
-
-public class ContactManagerImpl {
-	private LinkedHashSet<Contact> contactSet = null;
+ 
+public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
+	private LinkedHashSet<Contact> contactSet;
 	private FutureMeeting futureList = null; //sorted list?
+
+	@Before 
+	public void initialiseClass(){
+		addNewContact("Sam", "he is someone");
+		addNewContact("Sam", "");
+	}
+
+	// public int addFutureMeeting(Set<Contact> contacts, Calendar date){
+	// 	//method
+	// }
+
+	// public PastMeeting getPastMeeting(int id){
+	// 	//method
+	// }
+
+	// public FutureMeeting getFutureMeeting(int id){
+	// 	//method
+	// }
+
+	// public Meeting getMeeting(int id){
+	// 	//method
+	// }
+
+	// public List<Meeting> getFutureMeetingList(Contact contact){
+	// 	//method
+	// }
+
+	// public List<Meeting> getFutureMeetingList(Calendar date){
+	// 	//method
+	// }
+
+	// public List<PastMeeting> getPastMeetingList(Contact contact){
+	// 	//method
+	// }
+
+	// public void addNewPastMeeting(Set<Contact> contacts, Calendar date, String text){
+	// 	//method
+	// }
+
+	// public void addMeetingNotes(int id, String text){
+	// 	//method
+	// }
 
 	@Test
 	public void testAddNewContact(){
-		ContactManagerImpl database = new ContactManagerImpl();
-		database.addNewContact("sam", "he is someone");
-		database.addNewContact("sam", "");
-		String result = database.prettyPrint();
-		System.out.println("CONTACT SET: " + result);
-		assertEquals(result, "sam, 0, he is someone; sam, 0, ; "); //iterator does not return in same order!!!
+		String output = prettyPrint();
+		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");
 	}
 
-	public void addNewContact(String name, String notes) throws NullPointerException {
-		if (contactSet == null){
-			contactSet = new LinkedHashSet<Contact>();
+	public void addNewContact(String name, String notes) {
+		if (this.contactSet == null){
+			LinkedHashSet<Contact> temp = new LinkedHashSet<Contact>(); 
+			this.contactSet = temp;
 		}
 
-		int newId = 0;
-		// while (getContacts(newId)){
-		// 	newId++;
-		// }
+		int newId = generateId(0);
+		//perhaps add method to check whether contact w/ same notes & name exists?
 
 		try {
 			if (name.equals(null) || notes.equals(null)){
 				throw new NullPointerException();
 			}
-			Contact anotherContact = new ContactImpl(name, newId);
-			anotherContact.addNotes(notes);
-			contactSet.add(anotherContact);
 		} catch (NullPointerException e) {
 			System.out.println("name or notes are null");
 			e.printStackTrace();
 		}
+
+		Contact anotherContact = new ContactImpl(name, newId);
+		anotherContact.addNotes(notes);
+		contactSet.add(anotherContact);
+		System.out.println("Contact \"" + anotherContact.getName() + "\" assigned ID " + 
+			anotherContact.getId() + " and added to the system.");
 	}
 
-	// public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
-	//     Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]); //turn into array so that elements can be returned
-	// 	Set<Contact> result = new LinkedHashSet<Contact>();
+	private int generateId(int id){
+		Iterator<Contact> iterator = contactSet.iterator();
+		boolean unique = true;
 
-	// 	for (int i = 0; i < ids.length; i++) { //iterating through args
-	// 		System.out.println("ARG BEING TESTED: " + ids[i]);
-	// 	    for (int n = 0; n < contactArray.length; n++) { //iterating through contactSet
-	// 	    	if (ids[i] == (contactArray[i].getId())) {
-	// 	    		result.add(contactArray[i]);
-	// 	    		System.out.println("found " + contactArray[i].getName());
-	// 	    	}
-	// 	    }	
-	// 	}
+		while (iterator.hasNext()){
+			Contact person = iterator.next();	
+			if (person.getId() == id){
+				unique = false;
+			}
+		}
 
-	// 	if (result.isEmpty()){
-	//     	throw new IllegalArgumentException("No matching IDs found.");			
-	// 	}		
-	// 	return result;
-	// } 
+		if (unique){
+			return id;
+		} else {
+			return generateId(id + 1);
+		}
+	}
+
+	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
+	    Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]); //turn into array so that elements can be returned
+		Set<Contact> result = new LinkedHashSet<Contact>();
+
+		for (int i = 0; i < ids.length; i++) { //iterating through args
+			System.out.println("ARG BEING TESTED: " + ids[i]);
+		    for (int n = 0; n < contactArray.length; n++) { //iterating through contactSet
+		    	if (ids[i] == (contactArray[i].getId())) {
+		    		result.add(contactArray[i]);
+		    		System.out.println("found " + contactArray[i].getName());
+		    	}
+		    }	
+		}
+		
+		if (result.isEmpty()){
+	    	throw new IllegalArgumentException("No matching IDs found.");			
+		}		
+		return result;
+	} 
 
 	public Set<Contact> getContacts(String name){
-		if (name == null) { 
+		try {
+			if (name == null) { 
 	    	throw new NullPointerException(); //catch
+	    	}
+	    } catch (NullPointerException e){
+	    	System.out.println("name entered is null.");
+	    	e.printStackTrace();
 	    }
 		
 		Iterator<Contact> iterator = contactSet.iterator();
@@ -72,8 +135,8 @@ public class ContactManagerImpl {
 		
 		while (iterator.hasNext()){
 			Contact person = iterator.next();
-			if (person.getName().contains(name)){ //boolean test for whether name of Contact object contains name
-				result.add(person); //how does it increment?
+			if (person.getName().contains(name)){ //contains() is a method in String
+				result.add(person);
 			}
 		}
 
@@ -92,11 +155,16 @@ public class ContactManagerImpl {
 	private String prettyPrint(){
 		Iterator<Contact> iterator = contactSet.iterator();
 		String result = "";
+
 		while (iterator.hasNext()){
 			Contact person = iterator.next();	
 			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "; ";
 		}
 
 		return result;
+	}
+
+	public void flush(){
+		//method
 	}
 }
