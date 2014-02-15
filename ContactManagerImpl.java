@@ -70,7 +70,11 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		}
 
 		int newId = generateId(0);
-		//perhaps add method to check whether contact w/ same notes & name exists?
+		//perhaps add method to check whether contact w/ same name exists?
+		//option 1: append notes
+		//option 2: overwrite
+		//option 3: add new
+		//option 4: do not add new
 
 
 		try {
@@ -89,7 +93,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			anotherContact.getId() + " and added to the system.");
 	}
 
-	private int generateId(int id){
+	private int generateId(int id){ //would take a long time with 1000s contacts
 		Iterator<Contact> iterator = contactSet.iterator();
 		boolean unique = true;
 
@@ -111,6 +115,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	public void testGetContactsInts(){
 		Set<Contact> tempSet = getContacts(1);
 		String output = prettyPrint(tempSet);
+		System.out.println(output);		
 		assertEquals(output, "Sam, 1, ; ");
 	}
 
@@ -118,7 +123,13 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	public void testGetContactsIntsWithMultipleArgs(){
 		Set<Contact> tempSet = getContacts(0, 1);
 		String output = prettyPrint(tempSet);
+		System.out.println(output);		
 		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");		
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetContactsIntsWithZeroArgs(){
+		Set<Contact> tempSet = getContacts();			
 	}
 
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
@@ -126,7 +137,6 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		Set<Contact> result = new LinkedHashSet<Contact>();
 
 		for (int i = 0; i < ids.length; i++) { //iterating through args
-			System.out.println("ARG BEING TESTED: " + ids[i]);
 		    for (int n = 0; n < contactArray.length; n++) { //iterating through contactSet
 		    	if (ids[i] == (contactArray[n].getId())) {
 		    		result.add(contactArray[n]);
@@ -135,20 +145,38 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		    }	
 		}
 		
+		//exception thrown when ANY ideas do not correspond to Contact
 		if (result.isEmpty()){
 	    	throw new IllegalArgumentException("No matching IDs found.");			
 		}		
 		return result;
 	} 
 
+	@Test
+	public void testGetContactsString(){
+		Set<Contact> tempSet = getContacts("Sam");
+		String output = prettyPrint(tempSet);
+		System.out.println(output);
+		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");
+	}
+
+	@Test
+	public void testGetContactsStringNoMatch(){
+		Set<Contact> tempSet = getContacts("Alice");
+		String output = prettyPrint(tempSet);
+		System.out.println(output);
+		assertEquals(output, "");
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testGetContactsStringNull(){
+		String str = null;
+		Set<Contact> tempSet = getContacts(str);
+	}
+
 	public Set<Contact> getContacts(String name){
-		try {
-			if (name == null) { 
-	    	throw new NullPointerException(); //catch
-	    	}
-	    } catch (NullPointerException e){
-	    	System.out.println("name entered is null.");
-	    	e.printStackTrace();
+		if (name == null) { 
+	    	throw new NullPointerException();
 	    }
 		
 		Iterator<Contact> iterator = contactSet.iterator();
@@ -161,14 +189,9 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			}
 		}
 
-		try {
-			if (result.isEmpty()){
-		    	throw new IllegalArgumentException();			
-			}		
-		} catch (IllegalArgumentException e){
+		if (result.isEmpty()){
 			System.out.println("No match found.");
-			e.printStackTrace();
-		}
+		}		
 
 		return result;
 	}
