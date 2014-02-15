@@ -6,13 +6,19 @@ import org.junit.*;
 import static org.junit.Assert.*;
  
 public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
-	private LinkedHashSet<Contact> contactSet;
+	private LinkedHashSet<Contact> contactSet = null;
 	private FutureMeeting futureList = null; //sorted list?
 
-	@Before 
-	public void initialiseClass(){
+	@Before
+	public void setUp(){
 		addNewContact("Sam", "he is someone");
 		addNewContact("Sam", "");
+	}
+
+	@After
+	public void tearDown(){
+		this.contactSet = null;
+		this.futureList = null;
 	}
 
 	// public int addFutureMeeting(Set<Contact> contacts, Calendar date){
@@ -53,7 +59,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 
 	@Test
 	public void testAddNewContact(){
-		String output = prettyPrint();
+		String output = prettyPrint(contactSet);
 		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");
 	}
 
@@ -65,6 +71,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 
 		int newId = generateId(0);
 		//perhaps add method to check whether contact w/ same notes & name exists?
+
 
 		try {
 			if (name.equals(null) || notes.equals(null)){
@@ -100,6 +107,20 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		}
 	}
 
+	@Test
+	public void testGetContactsInts(){
+		Set<Contact> tempSet = getContacts(1);
+		String output = prettyPrint(tempSet);
+		assertEquals(output, "Sam, 1, ; ");
+	}
+
+	@Test
+	public void testGetContactsIntsWithMultipleArgs(){
+		Set<Contact> tempSet = getContacts(0, 1);
+		String output = prettyPrint(tempSet);
+		assertEquals(output, "Sam, 0, he is someone; Sam, 1, ; ");		
+	}
+
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
 	    Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]); //turn into array so that elements can be returned
 		Set<Contact> result = new LinkedHashSet<Contact>();
@@ -107,9 +128,9 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		for (int i = 0; i < ids.length; i++) { //iterating through args
 			System.out.println("ARG BEING TESTED: " + ids[i]);
 		    for (int n = 0; n < contactArray.length; n++) { //iterating through contactSet
-		    	if (ids[i] == (contactArray[i].getId())) {
-		    		result.add(contactArray[i]);
-		    		System.out.println("found " + contactArray[i].getName());
+		    	if (ids[i] == (contactArray[n].getId())) {
+		    		result.add(contactArray[n]);
+		    		System.out.println("found " + contactArray[n].getName());
 		    	}
 		    }	
 		}
@@ -152,8 +173,8 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		return result;
 	}
 
-	private String prettyPrint(){
-		Iterator<Contact> iterator = contactSet.iterator();
+	private String prettyPrint(Set<Contact> set){
+		Iterator<Contact> iterator = set.iterator();
 		String result = "";
 
 		while (iterator.hasNext()){
