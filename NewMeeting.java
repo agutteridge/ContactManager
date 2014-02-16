@@ -1,31 +1,29 @@
-public class NewMeeting implements AllMeetings {
-	//generateID
+import java.util.*;
+
+public class NewMeeting extends AllMeetings {
 	private int meetingID;
 	private Calendar meetingDate;
 	private Set<Contact> meetingContacts;
+	private String meetingNotes;
 
 	private String addZero(String num){
-		if (num.length() == 1){
+		if (num.length() < 2){
 			num = "0" + num;
 		}
 		return num;
 	}
 
-	public int generateID(Calendar date, int uniqueNumber){
-		if (uniqueNumber > 10){
-			System.out.println("There are already 10 meetings scheduled for this date.");
-			throw new IllegalArgumentException();
-		}
-
+	public int generateId(Calendar date, int uniqueNumber){
 		String year = String.valueOf(date.get(Calendar.YEAR));
 		String month = String.valueOf(date.get(Calendar.MONTH));
-		addZero(month);
+		month = addZero(month);
 		String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
-		addZero(day);
+		day = addZero(day);
 		String lastnumber = String.valueOf(uniqueNumber); 
 
 		String id = year + month + day + lastnumber; //concatenate year, month, day and meeting no.
-		return id;	
+		int intID = Integer.parseInt(id);
+		return intID;	
 	}
 
 	public int getId(){
@@ -47,6 +45,10 @@ public class NewMeeting implements AllMeetings {
 	*/
 	public Set<Contact> getContacts(){
 		return meetingContacts;
+	}
+
+	public String getNotes(){
+		return meetingNotes;
 	}
 
 }

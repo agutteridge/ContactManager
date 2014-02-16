@@ -1,4 +1,4 @@
-public abstract class AllMeetings extends FutureMeeting, PastMeeting {
+public abstract class AllMeetings implements FutureMeeting, PastMeeting {
 
 	//abstract class to allow multiple inheritance
 }

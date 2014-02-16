@@ -1,25 +1,8 @@
-import java.util.Calendar;
-import java.util.List;
-import java.util.Set;
 import java.util.*;
-import org.junit.*;
-import static org.junit.Assert.*;
  
 public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	private LinkedHashSet<Contact> contactSet = null;
 	private FutureMeeting futureList = null; //sorted list?
-
-	@Before
-	public void setUp(){
-		addNewContact("Sam", "he is someone");
-		addNewContact("Sam", "");
-	}
-
-	@After
-	public void tearDown(){
-		this.contactSet = null;
-		this.futureList = null;
-	}
 
 	// public int addFutureMeeting(Set<Contact> contacts, Calendar date){
 	// 	//method
@@ -56,12 +39,6 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	// public void addMeetingNotes(int id, String text){
 	// 	//method
 	// }
-
-	@Test
-	public void testAddNewContact(){
-		String output = prettyPrint(contactSet);
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");
-	}
 
 	public void addNewContact(String name, String notes) {
 		if (this.contactSet == null){
@@ -111,27 +88,6 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		}
 	}
 
-	@Test
-	public void testGetContactsInts(){
-		Set<Contact> tempSet = getContacts(1);
-		String output = prettyPrint(tempSet);
-		System.out.println(output);		
-		assertEquals(output, "Sam, 1, \r\n");
-	}
-
-	@Test
-	public void testGetContactsIntsWithMultipleArgs(){
-		Set<Contact> tempSet = getContacts(0, 1);
-		String output = prettyPrint(tempSet);
-		System.out.println(output);		
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");		
-	}
-
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetContactsIntsWithZeroArgs(){
-		Set<Contact> tempSet = getContacts();			
-	}
-
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
 	    Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]); //turn into array so that elements can be returned
 		Set<Contact> result = new LinkedHashSet<Contact>();
@@ -144,34 +100,15 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		    }	
 		}
 		
-		//exception thrown when ANY ideas do not correspond to Contact
 		if (result.isEmpty()){
-	    	throw new IllegalArgumentException("No matching IDs found.");			
-		}		
+			System.out.println("No matching IDs found.");
+	    	throw new IllegalArgumentException();			
+		} else if (result.size() != ids.length){
+			System.out.println("Not all IDs were valid.");
+	    	throw new IllegalArgumentException();			
+		}
 		return result;
 	} 
-
-	@Test
-	public void testGetContactsString(){
-		Set<Contact> tempSet = getContacts("Sam");
-		String output = prettyPrint(tempSet);
-		System.out.println(output);
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");
-	}
-
-	@Test
-	public void testGetContactsStringNoMatch(){
-		Set<Contact> tempSet = getContacts("Alice");
-		String output = prettyPrint(tempSet);
-		System.out.println(output);
-		assertEquals(output, "");
-	}
-
-	@Test(expected=NullPointerException.class)
-	public void testGetContactsStringNull(){
-		String str = null;
-		Set<Contact> tempSet = getContacts(str);
-	}
 
 	public Set<Contact> getContacts(String name){
 		if (name == null) { 
@@ -201,7 +138,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	* @param Set to be printed
 	* @return Formatted string of Contacts' names, IDs and Notes
 	*/
-	private String prettyPrint(Set<Contact> set){
+	public String prettyPrint(Set<Contact> set){
 		Iterator<Contact> iterator = set.iterator();
 		String result = "";
 
