@@ -6,13 +6,37 @@ public class NewMeeting extends AllMeetings {
 	private Set<Contact> meetingContacts;
 	private String meetingNotes;
 
+	public NewMeeting(){
+		//testing only
+	}
+
+	public NewMeeting(Calendar date, Set<Contact> contacts, String... notes) throws IllegalArgumentException {
+		
+		this.meetingID = generateId(date, 0);
+		Calendar today = Calendar.getInstance();
+		
+		if (date.before(today)){
+			throw new IllegalArgumentException();
+			System.out.println("Meeting is in the past.");
+		} else {
+			this.meetingDate = date;
+		}
+
+		if (contacts.isEmpty()){
+			System.out.println("No contacts specified.");
+			throw new IllegalArgumentException();			
+		} else {
+			this.meetingContacts = contacts;
+		}
+	}
+
 	private String addZero(String num){
 		if (num.length() < 2){
 			num = "0" + num;
 		}
 		return num;
 	}
-
+ 
 	public int generateId(Calendar date, int uniqueNumber){
 		String year = String.valueOf(date.get(Calendar.YEAR));
 		String month = String.valueOf(date.get(Calendar.MONTH));
