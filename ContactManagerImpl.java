@@ -1,12 +1,53 @@
 import java.util.*;
  
 public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
-	private LinkedHashSet<Contact> contactSet = null;
-	private FutureMeeting futureList = null; //sorted list?
+	private Set<Contact> contactSet = null;
+	private List<Meeting> meetingList = null; //sorted list?
 
-	// public int addFutureMeeting(Set<Contact> contacts, Calendar date){
-	// 	//method
-	// }
+	public int addFutureMeeting(Set<Contact> contacts, Calendar date){
+		Calendar today = Calendar.getInstance();
+		if (date.before(today)){
+			throw new IllegalArgumentException();
+			System.out.println("Meeting is in the past.");
+		} else {
+			this.meetingDate = date;
+		}
+
+		if (contacts.isEmpty()){
+			System.out.println("No contacts specified.");
+			throw new IllegalArgumentException();			
+		} else {
+			checkContacts();
+		}
+
+		int meetingID = generateMeetingId();
+
+		FutureMeeting meeting = new NewMeeting(date, meetingID, contacts);
+		meetingList.add(meeting);
+		return meetingID;
+	}
+
+	/**
+	* Returns true if all contacts in set correspond to real Contacts in contactSet,
+	* false otherwise.
+	* 
+	* Catches IllegalArgumentException thrown from getContacts(int...)
+	*
+	* @return boolean true if all contacts valid.
+	* @param set containing contacts being tested
+	*/
+	public boolean checkContacts(Set<Contact> set){
+		for (int i = 0; i < set.size(); i++) {
+			try {
+				int contactID = set.get(i).getId();
+				getContacts(contactID);
+			} catch (IllegalArgumentException ie) {
+				System.out.println("Set of contacts is invalid.");
+				return false;
+			}
+		}
+		return true;
+	}
 
 	// public PastMeeting getPastMeeting(int id){
 	// 	//method
@@ -42,17 +83,10 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 
 	public void addNewContact(String name, String notes) {
 		if (this.contactSet == null){
-			LinkedHashSet<Contact> temp = new LinkedHashSet<Contact>(); 
-			this.contactSet = temp;
+			this.contactSet = new LinkedHashSet<Contact>();
 		}
 
-		int newId = generateId(0);
-		//perhaps add method to check whether contact w/ same name exists?
-		//option 1: append notes
-		//option 2: overwrite
-		//option 3: add new
-		//option 4: do not add new
-
+		int newId = generateId();
 
 		try {
 			if (name.equals(null) || notes.equals(null)){
@@ -70,34 +104,58 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			anotherContact.getId() + " and added to the system.");
 	}
 
-	private int generateId(int id){ //would take a long time with 1000s contacts
-		Iterator<Contact> iterator = contactSet.iterator();
-		boolean unique = true;
-
-		while (iterator.hasNext()){
-			Contact person = iterator.next();	
-			if (person.getId() == id){
-				unique = false;
-			}
+	/**
+	* Generates unique IDs for contacts 
+	* 
+	* @return unique contact integer
+	* @throws IllegalArgumentException if ID generated already exists
+	*/
+	private int generateId(){
+		int uniqueID = contactSet.size();
+		try {
+			getContacts(uniqueID);
+		} catch (IllegalArgumentException ie){
+			//ID is unique
+			return uniqueID;
 		}
+		
+		//ID is not unique
+		throw new IllegalArgumentException();
+	}
 
-		if (unique){
-			return id;
+	/**
+	* Generates IDs for dates (made unique in NewMeeting constructor)
+	* @return integer suffix to be added to date in NewMeeting constructor
+	* @param date of meeting
+	* @param whether meeting date is in the future or not
+	*/
+	private int generateId(Calendar date, boolean isFuture){
+		if(isFuture){
+			try {
+				List<FutureMeeting> futureList = getFutureMeetingList(date);
+				return futureList.length() + 1;
+			} catch (IllegalArgumentException ie){
+				return 0;
+			}
 		} else {
-			return generateId(id + 1);
+			try {
+				List<PastMeeting> pastList = getPastMeetingList(date);
+				return pastList.length() + 1;
+			} catch (IllegalArgumentException ie){
+				return 0;
+			}			
 		}
 	}
 
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
-	    Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]); //turn into array so that elements can be returned
-		Set<Contact> result = new LinkedHashSet<Contact>();
+		Set<Contact> result = new LinkedHashSet<Contact>(); 
 
 		for (int i = 0; i < ids.length; i++) { //iterating through args
-		    for (int n = 0; n < contactArray.length; n++) { //iterating through contactSet
-		    	if (ids[i] == (contactArray[n].getId())) {
-		    		result.add(contactArray[n]);
+		    for (int n = 0; n < contactSet.size(); n++) { //iterating through contactSet
+		    	if (ids[i] == (contactSet.get(n).getId())) {
+		    		result.add(contactSet.get(n));
 		    	}
-		    }	
+		    }
 		}
 		
 		if (result.isEmpty()){
@@ -116,7 +174,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	    }
 		
 		Iterator<Contact> iterator = contactSet.iterator();
-		Set<Contact> result = new LinkedHashSet<Contact>();
+		Set<Contact> result = new LinkedHashSet<Contact>(); //does this have to be instantiated?
 		
 		while (iterator.hasNext()){
 			Contact person = iterator.next();
@@ -133,7 +191,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Printing method - for testing only?
+	* Printing method
 	* 
 	* @param Set to be printed
 	* @return Formatted string of Contacts' names, IDs and Notes

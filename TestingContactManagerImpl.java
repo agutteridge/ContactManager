@@ -67,4 +67,21 @@ public class TestingContactManagerImpl {
 		Set<Contact> tempSet = test.getContacts(str);
 	}
 
+	//FOR ADDFUTUREMEETING 
+	// @Test(expected=IllegalArgumentException.class)
+	// public void testConstructorPastMeeting(){
+	// 	Set<Contact> set = new LinkedHashSet<Contact>();
+	// 	Contact alice = new ContactImpl("Alice", 0);
+	// 	set.add(alice);		
+	// 	Calendar date = new GregorianCalendar(1970, 1, 1);
+	// 	test = new NewMeeting(date, set);
+	// }
+
+	//FOR ADDFUTUREMEETING 
+	// @Test(expected=IllegalArgumentException.class)
+	// public void testConstructorEmptyContactSet(){
+	// 	Calendar date = new GregorianCalendar(1970, 1, 1);
+	// 	test = new NewMeeting();
+	// }
+
 }

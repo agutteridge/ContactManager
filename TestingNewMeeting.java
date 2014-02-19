@@ -12,20 +12,4 @@ public class TestingNewMeeting {
 		int output = test.generateId(date1, 8);
 		assertEquals(output, 201402158);
 	}
-
-	//THESE EXCEPTIONS SHOULD BE IN ADDFUTUREMEETING OF CONTACTMANAGERIMPL
-	@Test(expected=IllegalArgumentException.class)
-	public void testConstructorPastMeeting(){
-		Set<Contact> set = new LinkedHashSet<Contact>();
-		Contact alice = new ContactImpl("Alice", 0);
-		set.add(alice);		
-		Calendar date = new GregorianCalendar(1970, 1, 1);
-		test = new NewMeeting(date, set);
-	}
-
-	@Test(expected=IllegalArgumentException.class)
-	public void testConstructorEmptyContactSet(){
-		Calendar date = new GregorianCalendar(1970, 1, 1);
-		test = new NewMeeting();
-	}
 }

@@ -8,28 +8,22 @@ public class NewMeeting extends AllMeetings {
 
 	public NewMeeting(){
 		//testing only
+		System.out.println("Incorrect constructor used.");
 	}
 
-	public NewMeeting(Calendar date, Set<Contact> contacts, String... notes) throws IllegalArgumentException {
-		
-		this.meetingID = generateId(date, 0);
-		Calendar today = Calendar.getInstance();
-		
-		if (date.before(today)){
-			throw new IllegalArgumentException();
-			System.out.println("Meeting is in the past.");
-		} else {
-			this.meetingDate = date;
-		}
-
-		if (contacts.isEmpty()){
-			System.out.println("No contacts specified.");
-			throw new IllegalArgumentException();			
-		} else {
-			this.meetingContacts = contacts;
-		}
+	public NewMeeting(Calendar date, int uniqueID, Set<Contact> contacts, String... notes){
+		meetingDate = date;
+		meetingID = uniqueID;
+		meetingContacts = contacts;
+		meetingNotes = notes;
 	}
 
+	/**
+	* Adds a zero prefix to a month or day of number 1-9
+	*
+	* @param number to be prefixed with a zero
+	* @return String of concatenated digits
+	*/
 	private String addZero(String num){
 		if (num.length() < 2){
 			num = "0" + num;
