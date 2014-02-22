@@ -11,11 +11,14 @@ public class NewMeeting extends AllMeetings {
 		System.out.println("Incorrect constructor used.");
 	}
 
-	public NewMeeting(Calendar date, int uniqueID, Set<Contact> contacts, String... notes){
+	public NewMeeting(Calendar date, int iDsuffix, Set<Contact> contacts, String notes){
 		meetingDate = date;
-		meetingID = uniqueID;
 		meetingContacts = contacts;
 		meetingNotes = notes;
+
+		String lastnumber = String.valueOf(iDsuffix); 
+		String stringID = formatDate(date) + lastnumber;
+		meetingID = Integer.parseInt(stringID);
 	}
 
 	/**
@@ -30,18 +33,20 @@ public class NewMeeting extends AllMeetings {
 		}
 		return num;
 	}
- 
-	public int generateId(Calendar date, int uniqueNumber){
+
+	/**
+	* Formatting date to String (also used in testing)
+	* 
+	* @return date in yyyymmdd format
+	* @param date to convert into String and format
+	*/
+	public String formatDate(Calendar date){
 		String year = String.valueOf(date.get(Calendar.YEAR));
 		String month = String.valueOf(date.get(Calendar.MONTH));
-		month = addZero(month);
 		String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
-		day = addZero(day);
-		String lastnumber = String.valueOf(uniqueNumber); 
 
-		String id = year + month + day + lastnumber; //concatenate year, month, day and meeting no.
-		int intID = Integer.parseInt(id);
-		return intID;	
+		String result = year + addZero(month) + addZero(day); //concatenate year, month and day
+		return result;
 	}
 
 	public int getId(){
@@ -52,15 +57,6 @@ public class NewMeeting extends AllMeetings {
 		return meetingDate;
 	}
 
-	/**
-	* Return the details of people that attended the meeting.
-	*
-	* The list contains a minimum of one contact (if there were
-	* just two people: the user and the contact) and may contain an
-	* arbitary number of them.
-	*
-	* @return the details of people that attended the meeting.
-	*/
 	public Set<Contact> getContacts(){
 		return meetingContacts;
 	}

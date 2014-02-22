@@ -1,28 +1,33 @@
 import java.util.*;
  
 public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
-	private Set<Contact> contactSet = null;
-	private List<Meeting> meetingList = null; //sorted list?
+	private Set<Contact> contactSet;
+	private List<Meeting> meetingList; //sorted list?
 
 	public int addFutureMeeting(Set<Contact> contacts, Calendar date){
+
 		Calendar today = Calendar.getInstance();
 		if (date.before(today)){
-			throw new IllegalArgumentException();
 			System.out.println("Meeting is in the past.");
-		} else {
-			this.meetingDate = date;
+			throw new IllegalArgumentException();
 		}
 
 		if (contacts.isEmpty()){
 			System.out.println("No contacts specified.");
 			throw new IllegalArgumentException();			
 		} else {
-			checkContacts();
+			if (!checkContacts(contacts)){
+				throw new IllegalArgumentException();
+			}
 		}
 
-		int meetingID = generateMeetingId();
+		if (meetingList == null){
+			meetingList = new ArrayList<Meeting>();
+		}	
 
-		FutureMeeting meeting = new NewMeeting(date, meetingID, contacts);
+		int meetingID = 0; //generateMeetingId();
+
+		FutureMeeting meeting = new NewMeeting(date, meetingID, contacts, "");
 		meetingList.add(meeting);
 		return meetingID;
 	}
@@ -37,11 +42,10 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	* @param set containing contacts being tested
 	*/
 	public boolean checkContacts(Set<Contact> set){
-		for (int i = 0; i < set.size(); i++) {
-			try {
-				int contactID = set.get(i).getId();
-				getContacts(contactID);
-			} catch (IllegalArgumentException ie) {
+		Iterator<Contact> iterator = set.iterator();
+		while (iterator.hasNext()){
+			Contact person = iterator.next();
+			if (!contactSet.contains(person)){ //contains() is a method in String
 				System.out.println("Set of contacts is invalid.");
 				return false;
 			}
@@ -100,8 +104,6 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		Contact anotherContact = new ContactImpl(name, newId);
 		anotherContact.addNotes(notes);
 		contactSet.add(anotherContact);
-		System.out.println("Contact \"" + anotherContact.getName() + "\" assigned ID " + 
-			anotherContact.getId() + " and added to the system.");
 	}
 
 	/**
@@ -124,47 +126,53 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Generates IDs for dates (made unique in NewMeeting constructor)
+	* Generates ID suffix for meetings. 
+	* Appended to date when NewMeeting constructor is called.
+	*
 	* @return integer suffix to be added to date in NewMeeting constructor
 	* @param date of meeting
 	* @param whether meeting date is in the future or not
 	*/
-	private int generateId(Calendar date, boolean isFuture){
-		if(isFuture){
-			try {
-				List<FutureMeeting> futureList = getFutureMeetingList(date);
-				return futureList.length() + 1;
-			} catch (IllegalArgumentException ie){
-				return 0;
-			}
-		} else {
-			try {
-				List<PastMeeting> pastList = getPastMeetingList(date);
-				return pastList.length() + 1;
-			} catch (IllegalArgumentException ie){
-				return 0;
-			}			
-		}
-	}
+	// private int generateId(Calendar date, boolean isFuture){
+	// 	if(isFuture){
+	// 		try {
+	// 			List<Meeting> futureList = new ArrayList<FutureMeeting>();
+	// 			futureList = getFutureMeetingList(date);
+	// 			return futureList.length() + 1;
+	// 		} catch (IllegalArgumentException ie){
+	// 			return 0;
+	// 		}
+	// 	} else {
+	// 		try {
+	// 			List<Meeting> pastList = new ArrayList<PastMeeting>();
+	// 			futureList = getPastMeetingList(date);
+	// 			return pastList.length() + 1;
+	// 		} catch (IllegalArgumentException ie){
+	// 			return 0;
+	// 		}			
+	// 	}
+	// }
 
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
-		Set<Contact> result = new LinkedHashSet<Contact>(); 
+		Set<Contact> result = new LinkedHashSet<Contact>();
 
 		for (int i = 0; i < ids.length; i++) { //iterating through args
-		    for (int n = 0; n < contactSet.size(); n++) { //iterating through contactSet
-		    	if (ids[i] == (contactSet.get(n).getId())) {
-		    		result.add(contactSet.get(n));
-		    	}
-		    }
+			Iterator<Contact> iterator = contactSet.iterator();
+			while (iterator.hasNext()){
+				Contact person = iterator.next();
+				if (person.getId() == ids[i]){ //contains() is a method in String
+					result.add(person);
+				}
+			}
 		}
 		
 		if (result.isEmpty()){
-			System.out.println("No matching IDs found.");
 	    	throw new IllegalArgumentException();			
 		} else if (result.size() != ids.length){
 			System.out.println("Not all IDs were valid.");
 	    	throw new IllegalArgumentException();			
 		}
+		
 		return result;
 	} 
 
@@ -174,7 +182,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	    }
 		
 		Iterator<Contact> iterator = contactSet.iterator();
-		Set<Contact> result = new LinkedHashSet<Contact>(); //does this have to be instantiated?
+		Set<Contact> result = new LinkedHashSet<Contact>();
 		
 		while (iterator.hasNext()){
 			Contact person = iterator.next();
@@ -191,13 +199,13 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Printing method
+	* Printing method for contacts
 	* 
 	* @param Set to be printed
 	* @return Formatted string of Contacts' names, IDs and Notes
 	*/
-	public String prettyPrint(Set<Contact> set){
-		Iterator<Contact> iterator = set.iterator();
+	public String printContacts(){
+		Iterator<Contact> iterator = contactSet.iterator();
 		String result = "";
 
 		while (iterator.hasNext()){
@@ -205,6 +213,28 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "\r\n";
 		}
 
+		System.out.println(result);
+		return result;
+	}
+
+	/**
+	* Printing method for meetings
+	* 
+	* @param Set to be printed
+	* @return Formatted string of Contacts' names, IDs and Notes
+	*/
+	public String printMeetings(){
+		Iterator<Meeting> iterator = meetingList.iterator();
+		String result = "";
+
+		while (iterator.hasNext()){	
+			Meeting m = iterator.next();
+			NewMeeting nm = new NewMeeting();
+			String fd = nm.formatDate(m.getDate());
+			result += fd + ", " + m.getId() + ", " + "\r\n";
+		}
+
+		System.out.println(result);
 		return result;
 	}
 
