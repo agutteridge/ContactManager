@@ -2,10 +2,9 @@ import java.util.*;
  
 public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	private Set<Contact> contactSet;
-	private List<Meeting> meetingList; //sorted list?
+	private List<Meeting> meetingList;
 
 	public int addFutureMeeting(Set<Contact> contacts, Calendar date){
-
 		Calendar today = Calendar.getInstance();
 		if (date.before(today)){
 			System.out.println("Meeting is in the past.");
@@ -25,11 +24,31 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			meetingList = new ArrayList<Meeting>();
 		}	
 
-		int meetingID = 0; //generateMeetingId();
+		int meetingID = generateMeetingId();
 
 		FutureMeeting meeting = new NewMeeting(date, meetingID, contacts, "");
-		meetingList.add(meeting);
+		insertInOrder(meeting);
 		return meetingID;
+	}
+
+	private boolean insertInOrder(Meeting meeting){
+		boolean inserted = false;
+		for (int i = 0; i < meetingList.length; i++) {
+			int order = meeting.compareTo(meetingList.get(i));
+
+			if (order == -1){
+				meetingList.add(i, meeting); //inserts meeting at index i
+				inserted = true;
+				i = meetingList.length + 1; //break out of for loop
+			}
+		}
+		
+		//Date is further in future than any current meetings, meeting added to the end.
+		if (!inserted) {
+			meetingList.add(meeting); 
+			inserted = true;
+		}
+		return inserted;
 	}
 
 	/**
@@ -53,25 +72,69 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		return true;
 	}
 
-	// public PastMeeting getPastMeeting(int id){
-	// 	//method
-	// }
+	public PastMeeting getPastMeeting(int id){
+		Meeting retrievedMeeting = getMeeting(id);
 
-	// public FutureMeeting getFutureMeeting(int id){
-	// 	//method
-	// }
+		if (retrievedMeeting == null){
+			return null;
+		}
 
-	// public Meeting getMeeting(int id){
-	// 	//method
-	// }
+		if (PastMeeting.instanceOf(retrievedMeeting)){
+			return retrievedMeeting;
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
+
+	public FutureMeeting getFutureMeeting(int id){
+		Meeting retrievedMeeting = getMeeting(id);
+
+		if (retrievedMeeting == null){
+			return null;
+		}
+
+		if (FutureMeeting.instanceOf(retrievedMeeting)){
+			return retrievedMeeting;
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
+
+	public Meeting getMeeting(int id){
+		for (int i = 0; i < meetingList.length; i++) {
+			if (id == meetingList.get(i)getId()){
+				return meetingList.get(i);
+			}
+		}
+		return null;
+	}
 
 	// public List<Meeting> getFutureMeetingList(Contact contact){
 	// 	//method
 	// }
 
-	// public List<Meeting> getFutureMeetingList(Calendar date){
-	// 	//method
-	// }
+	public List<Meeting> getFutureMeetingList(Calendar date){
+		List<Meeting> result = new ArrayList<Meeting>();
+
+		for (int i = meetingList.length - 1; i >= 0; i--) {
+			int relative = date.compareTo(meetingList.get(i).getDate()); 
+			if (relative > 0) {
+				i = -1; //list is in order, therefore traversal not necessary after this point
+			} else if (relative == 0){
+				result.add(meetingList.get(0,i)); //inserts elements to the front
+			}
+		}
+		return result;
+	}
+
+	/**
+	* Retrieval of Meetings, using date as a parameter. Used for generating IDs.
+	*
+	* Calls getFutureMeetingList
+	*/
+	public List<Meeting> getMeetingList(Calendar date){
+		return getFutureMeetingList()
+	}
 
 	// public List<PastMeeting> getPastMeetingList(Contact contact){
 	// 	//method
@@ -90,7 +153,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			this.contactSet = new LinkedHashSet<Contact>();
 		}
 
-		int newId = generateId();
+		int newId = generateContactId();
 
 		try {
 			if (name.equals(null) || notes.equals(null)){
@@ -107,12 +170,12 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Generates unique IDs for contacts 
+	* Generates unique IDs for contacts. Assumes deletion is impossible. 
 	* 
 	* @return unique contact integer
 	* @throws IllegalArgumentException if ID generated already exists
 	*/
-	private int generateId(){
+	private int generateContactId(){
 		int uniqueID = contactSet.size();
 		try {
 			getContacts(uniqueID);
@@ -126,32 +189,39 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Generates ID suffix for meetings. 
-	* Appended to date when NewMeeting constructor is called.
-	*
-	* @return integer suffix to be added to date in NewMeeting constructor
-	* @param date of meeting
-	* @param whether meeting date is in the future or not
+	* Generates unique IDs for contacts. Assumes deletion is impossible. 
+	* 
+	* @return unique meeting integer
+	* @throws IllegalArgumentException if ID generated already exists
 	*/
-	// private int generateId(Calendar date, boolean isFuture){
-	// 	if(isFuture){
-	// 		try {
-	// 			List<Meeting> futureList = new ArrayList<FutureMeeting>();
-	// 			futureList = getFutureMeetingList(date);
-	// 			return futureList.length() + 1;
-	// 		} catch (IllegalArgumentException ie){
-	// 			return 0;
-	// 		}
-	// 	} else {
-	// 		try {
-	// 			List<Meeting> pastList = new ArrayList<PastMeeting>();
-	// 			futureList = getPastMeetingList(date);
-	// 			return pastList.length() + 1;
-	// 		} catch (IllegalArgumentException ie){
-	// 			return 0;
-	// 		}			
-	// 	}
-	// }
+	private int generateMeetingId(){
+		int uniqueID = meetingList.length();
+
+		if (getMeeting(uniqueID) == null){
+			return uniqueID;
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
+
+	/**
+	* For determining whether the date is in the future or not.
+	* 
+	* Gregorian Calendar objects are set to 12am by default, so meetings created for today
+	* are assumed to be in the past.
+	*
+	* @param date to compare to today's date
+	* @return boolean - true if date is in future, false otherwise
+	*/
+	private boolean isFuture(Calendar date){
+		Calendar today = Calendar.getInstance();
+
+		if (date.compareTo(today) == 1){
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
 		Set<Contact> result = new LinkedHashSet<Contact>();
@@ -160,7 +230,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			Iterator<Contact> iterator = contactSet.iterator();
 			while (iterator.hasNext()){
 				Contact person = iterator.next();
-				if (person.getId() == ids[i]){ //contains() is a method in String
+				if (person.getId() == ids[i]){
 					result.add(person);
 				}
 			}
@@ -218,10 +288,10 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Printing method for meetings
+	* Printing method for meetings (does not print contacts of meeting)
 	* 
 	* @param Set to be printed
-	* @return Formatted string of Contacts' names, IDs and Notes
+	* @return Formatted string of meeting IDs and Notes
 	*/
 	public String printMeetings(){
 		Iterator<Meeting> iterator = meetingList.iterator();

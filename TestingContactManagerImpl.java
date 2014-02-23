@@ -104,7 +104,7 @@ public class TestingContactManagerImpl {
 		test.addFutureMeeting(set, date);
 		test.addFutureMeeting(set, date);
 		String output = test.printMeetings();
-		assertEquals(output, "20150101, 201501010, \r\n20150101, 201501010, \r\n");
+		assertEquals(output, "20150101, 2015010100, \r\n20150101, 2015010100, \r\n");
 	}
 
 	//printing methods
@@ -134,4 +134,20 @@ public class TestingContactManagerImpl {
 		System.out.println(result);
 		return result;
 	}
+
+	/**
+	* Formatting date to String (also used in testing)
+	* 
+	* @return date in yyyymmdd format
+	* @param date to convert into String and format
+	*/
+	public String formatDate(Calendar date){
+		String year = String.valueOf(date.get(Calendar.YEAR));
+		String month = String.valueOf(date.get(Calendar.MONTH));
+		String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
+
+		String result = year + month + day; //concatenate year, month and day
+		return result;
+	}
+
 }
