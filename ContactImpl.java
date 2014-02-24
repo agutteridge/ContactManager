@@ -15,7 +15,7 @@ public class ContactImpl implements Contact {
 	public ContactImpl(String name, int ident){
 		this.name = name;
 		this.ident = ident;
-		this.notes = "";
+		this.notes = null;
 	}
 
 	public int getId(){
@@ -31,7 +31,7 @@ public class ContactImpl implements Contact {
 	}
 
 	public void addNotes(String note){
-		if (this.notes.equals("")){
+		if (this.notes == null || this.notes.equals("")){
 			this.notes = note;
 		} else {
 			this.notes += ", " + note;		

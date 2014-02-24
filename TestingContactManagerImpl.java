@@ -9,6 +9,9 @@ public class TestingContactManagerImpl {
 	public void setUp(){
 		test.addNewContact("Sam", "he is someone");
 		test.addNewContact("Sam", "");
+		Calendar date = new GregorianCalendar(2015, 1, 1);
+		Set<Contact> tempSet = test.getContacts(0);
+		test.addFutureMeeting(tempSet, date);
 	}
 
 	@After
@@ -80,31 +83,72 @@ public class TestingContactManagerImpl {
 	@Test(expected=IllegalArgumentException.class)
 	public void testAddFutureMeetingPastDate(){
 		System.out.println("***TESTING: testAddFutureMeetingPastDate***");
-		Set<Contact> set = new LinkedHashSet<Contact>();
-		Contact alice = new ContactImpl("Alice", 0);
-		set.add(alice);
+		Set<Contact> tempSet = test.getContacts("Sam");
 		Calendar date = new GregorianCalendar(1970, 1, 1);
-		test.addFutureMeeting(set, date);
+		test.addFutureMeeting(tempSet, date);
 	}
 
 	@Test(expected=IllegalArgumentException.class)
-	public void testConstructorEmptyContactSet(){
-		System.out.println("***TESTING: testConstructorEmptyContactSet***");
-		Set<Contact> set = new LinkedHashSet<Contact>();
+	public void testAddFutureMeetingEmptyContactSet(){
+		System.out.println("***TESTING: testAddFutureMeetingEmptyContactSet***");
+		Set<Contact> tempSet = new LinkedHashSet<Contact>();
 		Calendar date = new GregorianCalendar(2015, 1, 1);
-		test.addFutureMeeting(set, date);
+		test.addFutureMeeting(tempSet, date);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddFutureMeetingUnknownContact(){
+		System.out.println("***TESTING: testAddFutureMeetingUnknownContact***");
+		Set<Contact> tempSet = new LinkedHashSet<Contact>();
+		Contact alice = new ContactImpl("Alice", 0);
+		tempSet.add(alice);
+		Calendar date = new GregorianCalendar(2015, 1, 1);
+		test.addFutureMeeting(tempSet, date);
 	}
 
 	@Test
 	public void testAddFutureMeeting(){
 		System.out.println("***TESTING: testAddFutureMeeting***");
-		Set<Contact> set = new LinkedHashSet<Contact>();
-		set = test.getContacts("Sam");
-		Calendar date = new GregorianCalendar(2015, 1, 1);
-		test.addFutureMeeting(set, date);
-		test.addFutureMeeting(set, date);
 		String output = test.printMeetings();
-		assertEquals(output, "20150101, 2015010100, \r\n20150101, 2015010100, \r\n");
+		assertEquals(output, "201511, 0\r\n");
+	}
+
+	@Test
+	public void testAddFutureMeetingContacts(){
+		System.out.println("***TESTING: testAddFutureMeetingContacts***");
+		Meeting m = test.getMeeting(0);
+		Set<Contact> tempSet = m.getContacts();
+		String output = printSet(tempSet); 
+		assertEquals(output, "Sam, 0, he is someone\r\n");		
+	}
+
+	@Test
+	public void testGetFutureMeeting(){
+		System.out.println("***TESTING: testGetFutureMeeting***");
+		Meeting m = test.getFutureMeeting(0);
+		assertTrue(m instanceof FutureMeeting);
+	}
+
+	@Test
+	public void testMeetingListIsOrdered(){
+		System.out.println("***TESTING: testMeetingListIsOrdered***");
+		Set<Contact> set1 = test.getContacts("Sam");
+		Calendar date1 = new GregorianCalendar(1970, 1, 1);
+		test.addNewContact("Alice", "new contact");
+		Set<Contact> set2 = test.getContacts("Alice");
+		Calendar date2 = new GregorianCalendar(2015, 4, 31);
+		test.addNewPastMeeting(set1, date1, "new meeting in the past.");
+		test.addFutureMeeting(set2, date2);
+		String output = test.printMeetings();
+		assertEquals(output, "197011, 1\r\n201511, 0\r\n2015431, 2\r\n");		
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetFutureMeetinginPast(){
+		Set<Contact> set1 = test.getContacts("Sam");
+		Calendar date1 = new GregorianCalendar(1970, 1, 1);
+		test.addNewPastMeeting(set1, date1, "new meeting in the past.");
+		test.getFutureMeeting(1);
 	}
 
 	//printing methods
@@ -134,20 +178,4 @@ public class TestingContactManagerImpl {
 		System.out.println(result);
 		return result;
 	}
-
-	/**
-	* Formatting date to String (also used in testing)
-	* 
-	* @return date in yyyymmdd format
-	* @param date to convert into String and format
-	*/
-	public String formatDate(Calendar date){
-		String year = String.valueOf(date.get(Calendar.YEAR));
-		String month = String.valueOf(date.get(Calendar.MONTH));
-		String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
-
-		String result = year + month + day; //concatenate year, month and day
-		return result;
-	}
-
 }
