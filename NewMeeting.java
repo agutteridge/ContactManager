@@ -1,15 +1,10 @@
 import java.util.*;
 
 public class NewMeeting extends AllMeetings {
-	private int meetingID;
+	private final int meetingID;
 	private Calendar meetingDate;
 	private Set<Contact> meetingContacts;
 	private String meetingNotes;
-
-	public NewMeeting(){
-		//testing only
-		System.out.println("Incorrect constructor used.");
-	}
 
 	public NewMeeting(Calendar date, int iD, Set<Contact> contacts, String notes){
 		this.meetingID = iD;
@@ -71,18 +66,4 @@ public class NewMeeting extends AllMeetings {
 		return (meetingDate.compareTo(m.getDate()));
 	}
 
-	/**
-	* Formatting date to String (used in testing)
-	* 
-	* @return date in yyyymmdd format
-	* @param date to convert into String and format
-	*/
-	public String formatDate(Calendar date){
-		String year = String.valueOf(date.get(Calendar.YEAR));
-		String month = String.valueOf(date.get(Calendar.MONTH));
-		String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
-
-		String result = year + month + day; //concatenate year, month and day
-		return result;
-	}
 }

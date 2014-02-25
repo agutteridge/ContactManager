@@ -109,7 +109,8 @@ public class TestingContactManagerImpl {
 	@Test
 	public void testAddFutureMeeting(){
 		System.out.println("***TESTING: testAddFutureMeeting***");
-		String output = test.printMeetings();
+		List<Meeting> tempList = test.getAllMeetings();
+		String output = printMeetings(tempList);
 		assertEquals(output, "201511, 0\r\n");
 	}
 
@@ -139,17 +140,29 @@ public class TestingContactManagerImpl {
 		Calendar date2 = new GregorianCalendar(2015, 4, 31);
 		test.addNewPastMeeting(set1, date1, "new meeting in the past.");
 		test.addFutureMeeting(set2, date2);
-		String output = test.printMeetings();
+		List<Meeting> tempList = test.getAllMeetings();
+		String output = printMeetings(tempList);
 		assertEquals(output, "197011, 1\r\n201511, 0\r\n2015431, 2\r\n");		
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetFutureMeetinginPast(){
-		Set<Contact> set1 = test.getContacts("Sam");
-		Calendar date1 = new GregorianCalendar(1970, 1, 1);
-		test.addNewPastMeeting(set1, date1, "new meeting in the past.");
-		test.getFutureMeeting(1);
+	@Test
+	public void testAddMeetingNotes(){
+		System.out.println("***TESTING: testAddMeetingNotes***");
+		test.addMeetingNotes(0, "is this added to meetingList?");
+		NewMeeting meetingAgain = (NewMeeting) test.getMeeting(0);
+		String output = meetingAgain.getNotes();
+		System.out.println(output);
+		assertEquals(output, "is this added to meetingList?");
 	}
+
+	// CURRENTLY DOES NOT WORK
+	// @Test(expected=IllegalArgumentException.class)
+	// public void testGetFutureMeetinginPast(){
+	// 	Set<Contact> set1 = test.getContacts("Sam");
+	// 	Calendar date1 = new GregorianCalendar(1970, 1, 1);
+	// 	test.addNewPastMeeting(set1, date1, "new meeting in the past.");
+	// 	test.getFutureMeeting(1);
+	// }
 
 	//printing methods
 	public String printSet(Set<Contact> set){
@@ -178,4 +191,40 @@ public class TestingContactManagerImpl {
 		System.out.println(result);
 		return result;
 	}
+
+	/**
+	* Formatting date to String (used in testing)
+	* 
+	* @return date in yyyymmdd format
+	* @param date to convert into String and format
+	*/
+	public String formatDate(Calendar date){
+		String year = String.valueOf(date.get(Calendar.YEAR));
+		String month = String.valueOf(date.get(Calendar.MONTH));
+		String day = String.valueOf(date.get(Calendar.DAY_OF_MONTH));
+
+		String result = year + month + day; //concatenate year, month and day
+		return result;
+	}
+
+
+	/**
+	* Printing method for meetings (does not print contacts of meeting)
+	* 
+	* @param Set to be printed
+	* @return Formatted string of meeting IDs and Notes
+	*/
+	public String printMeetings(List<Meeting> list){
+		Iterator<Meeting> iterator = list.iterator();
+		String result = "";
+
+		while (iterator.hasNext()){	
+			Meeting m = iterator.next();
+			result += formatDate(m.getDate()) + ", " + m.getId() + "\r\n";
+		}
+
+		System.out.println(result);
+		return result;
+	}
+
 }

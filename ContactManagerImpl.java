@@ -37,9 +37,12 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* True if future, false for past!
+	* Inserts meeting in list according to the Calendar date
+	* 
+	* @return true if element was inserted, false otherwise
+	* @param meeting to be inserted, isFuture for casting
 	*/
-	private boolean insertInOrder(NewMeeting meeting, boolean isFuture){
+	private boolean insertInOrder(Meeting meeting, boolean isFuture){
 
 		boolean inserted = false;
 		for (int i = 0; i < meetingList.size(); i++) {
@@ -130,9 +133,9 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	public Meeting getMeeting(int id){
-		for (int i = 0; i < meetingList.size(); i++) {
-			if (id == meetingList.get(i).getId()){
-				return meetingList.get(i);
+		for (Meeting m : meetingList) {
+			if (id == m.getId()){
+				return m;
 			}
 		}
 		return null;
@@ -181,9 +184,10 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		insertInOrder(meeting, false);
 	}
 
-	// public void addMeetingNotes(int id, String text){
-	// 	//method
-	// }
+	public void addMeetingNotes(int id, String text){
+		NewMeeting meeting = (NewMeeting) getMeeting(id);
+		meeting.addNotes(text);
+	}
 
 	public void addNewContact(String name, String notes) {
 		if (this.contactSet == null){
@@ -305,44 +309,12 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		return result;
 	}
 
-	/**
-	* Printing method for contacts
-	* 
-	* @param Set to be printed
-	* @return Formatted string of Contacts' names, IDs and Notes
-	*/
-	public String printContacts(){
-		Iterator<Contact> iterator = contactSet.iterator();
-		String result = "";
-
-		while (iterator.hasNext()){
-			Contact person = iterator.next();	
-			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "\r\n";
-		}
-
-		System.out.println(result);
-		return result;
+	public List<Meeting> getAllMeetings(){
+		return meetingList;
 	}
 
-	/**
-	* Printing method for meetings (does not print contacts of meeting)
-	* 
-	* @param Set to be printed
-	* @return Formatted string of meeting IDs and Notes
-	*/
-	public String printMeetings(){
-		Iterator<Meeting> iterator = meetingList.iterator();
-		String result = "";
-
-		while (iterator.hasNext()){	
-			Meeting m = iterator.next();
-			NewMeeting nm = new NewMeeting();
-			String fd = nm.formatDate(m.getDate());
-			result += fd + ", " + m.getId() + "\r\n";
-		}
-
-		System.out.println(result);
-		return result;
+	public Set<Contact> getAllContacts(){
+		return contactSet;
 	}
 
 	public void flush(){
