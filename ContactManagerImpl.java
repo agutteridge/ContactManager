@@ -11,53 +11,37 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			throw new IllegalArgumentException();
 		}
 
-		NewMeeting meeting = createMeeting(contacts, date, "");
-		insertInOrder(meeting, true);
-		return meeting.getId();
-	}
-
-	private NewMeeting createMeeting(Set<Contact> contacts, Calendar date, String notes) {
-		if (contacts.isEmpty()){
-			System.out.println("No contacts specified.");
-			throw new IllegalArgumentException();
-		} else {
-			if (!checkContacts(contacts)){
-				throw new IllegalArgumentException();
-			}
-		}
-
 		if (meetingList == null){
 			meetingList = new ArrayList<Meeting>();
 		}	
 
-		int meetingID = generateMeetingId();
+		try {
+			checkContacts(contacts);
+		} catch (IllegalArgumentException ie){
+			throw new IllegalArgumentException();
+		}
 
-		NewMeeting meeting = new NewMeeting(date, meetingID, contacts, notes);
-		return meeting;
+		int meetingID = generateMeetingId();
+		
+		Meeting meeting = new FutureMeetingImpl(date, meetingID, contacts);
+		insertInOrder(meeting);
+		return meetingID;
 	}
 
 	/**
 	* Inserts meeting in list according to the Calendar date
 	* 
 	* @return true if element was inserted, false otherwise
-	* @param meeting to be inserted, isFuture for casting
+	* @param meeting to be inserted
 	*/
-	private boolean insertInOrder(Meeting meeting, boolean isFuture){
-
+	private boolean insertInOrder(Meeting meeting){
 		boolean inserted = false;
+
 		for (int i = 0; i < meetingList.size(); i++) {
 			int order = meeting.getDate().compareTo(meetingList.get(i).getDate());
 
 			if (order == -1){
-				if (isFuture){
-					System.out.println("CAST TO FUTURE");
-					FutureMeeting m = (FutureMeeting) meeting;	
-					meetingList.add(i, m); //inserts meeting at index i
-				} else {
-					System.out.println("CAST TO PAST");
-					PastMeeting m = (PastMeeting) meeting;
-					meetingList.add(i, m);
-				}
+				meetingList.add(i, meeting); //inserts meeting at index i
 				inserted = true;
 				i = meetingList.size() + 1; //break out of for loop
 			}
@@ -65,13 +49,7 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		
 		//Date is further in future than any current meetings, meeting added to the end.
 		if (!inserted) {
-			if (isFuture){
-				FutureMeeting m = (FutureMeeting) meeting;	
-				meetingList.add(m);
-			} else {
-				PastMeeting m = (PastMeeting) meeting;						
-				meetingList.add(m);
-			}
+			meetingList.add(meeting);
 			inserted = true;
 		}
 		return inserted;
@@ -86,13 +64,18 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	* @return boolean true if all contacts valid.
 	* @param set containing contacts being tested
 	*/
-	private boolean checkContacts(Set<Contact> set){
+	private boolean checkContacts(Set<Contact> set) {
+		if (set.isEmpty()){
+			System.out.println("No contacts specified.");
+			throw new IllegalArgumentException();
+		} 		
+
 		Iterator<Contact> iterator = set.iterator();
 		while (iterator.hasNext()){
 			Contact person = iterator.next();
-			if (!contactSet.contains(person)){ //ADJUST!!!
+			if (!contactSet.contains(person)){
 				System.out.println("Set of contacts is invalid.");
-				return false;
+				throw new IllegalArgumentException();
 			} 
 		}
 		return true;
@@ -114,17 +97,13 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	public FutureMeeting getFutureMeeting(int id){
-		System.out.println("METHOD CALLED.");
 		Meeting retrievedMeeting = getMeeting(id);
 
 		if (retrievedMeeting == null){
 			return null;
 		}
-
-		Class meetingClass = FutureMeeting.class;
  
-		if (meetingClass.isInstance(retrievedMeeting)){
-			System.out.println("INSTANCE OF.");			
+		if (retrievedMeeting instanceof FutureMeeting){
 			FutureMeeting m = (FutureMeeting) retrievedMeeting;
 			return m;
 		} else {
@@ -141,9 +120,22 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		return null;
 	}
 
-	// public List<Meeting> getFutureMeetingList(Contact contact){
-	// 	//method
-	// }
+	public List<Meeting> getFutureMeetingList(Contact contact){
+		if(!contactSet.contains(contact)){
+			throw new IllegalArgumentException();
+		}
+
+		List<Meeting> result = new ArrayList<Meeting>();
+		int length = meetingList.size();
+
+		for (int i = length - 1; i >= 0; i--) {
+			Set<Contact> set = meetingList.get(i).getContacts();
+			if (set.contains(contact)){
+				result.add(meetingList.get(i));
+			}
+		}
+		return result;
+	}
 
 	public List<Meeting> getFutureMeetingList(Calendar date){
 		List<Meeting> result = new ArrayList<Meeting>();
@@ -176,17 +168,30 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	public void addNewPastMeeting(Set<Contact> contacts, Calendar date, String text){
 		Calendar today = Calendar.getInstance();
 		if (date.after(today)){
-			System.out.println("Meeting is in the past.");
+			System.out.println("Meeting is in the future.");
 			throw new IllegalArgumentException();
 		}
 
-		NewMeeting meeting = createMeeting(contacts, date, text);
-		insertInOrder(meeting, false);
+		int meetingID = generateMeetingId();
+
+		try {
+			checkContacts(contacts);
+		} catch (IllegalArgumentException ie){
+			throw new IllegalArgumentException();
+		}
+
+		Meeting meeting = new PastMeetingImpl(date, meetingID, contacts, text);
+		insertInOrder(meeting);
 	}
 
-	public void addMeetingNotes(int id, String text){
-		NewMeeting meeting = (NewMeeting) getMeeting(id);
-		meeting.addNotes(text);
+	public void addNotes(int id, String text){
+		FutureMeeting meetingToCast = getFutureMeeting(id); 
+		Calendar dateToTransfer = meetingToCast.getDate();
+		Set<Contact> setToTransfer = meetingToCast.getContacts();
+
+		Meeting meetingNowInPast = new PastMeetingImpl(dateToTransfer, id, setToTransfer, text);
+		meetingList.remove(meetingToCast);
+		insertInOrder(meetingNowInPast);
 	}
 
 	public void addNewContact(String name, String notes) {
@@ -242,25 +247,6 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 			return uniqueID;
 		} else {
 			throw new IllegalArgumentException();
-		}
-	}
-
-	/**
-	* For determining whether the date is in the future or not.
-	* 
-	* Gregorian Calendar objects are set to 12am by default, so meetings created for today
-	* are assumed to be in the past.
-	*
-	* @param date to compare to today's date
-	* @return boolean - true if date is in future, false otherwise
-	*/
-	private boolean isFuture(Calendar date){
-		Calendar today = Calendar.getInstance();
-
-		if (date.compareTo(today) == 1){
-			return true;
-		} else {
-			return false;
 		}
 	}
 

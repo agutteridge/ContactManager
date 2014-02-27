@@ -1,6 +1,7 @@
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
+package ContactManager;
 /**
 * A class to manage your contacts and meetings.
 */
