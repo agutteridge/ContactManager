@@ -37,7 +37,7 @@ public class ContactManagerImpl implements ContactManager {
 	private boolean insertInOrder(Meeting meeting){
 		boolean inserted = false;
 
-		for (int i = 0; i < meetingList.size(); i++) {
+		for (int i = 0; i < meetingList.size(); i++){
 			int order = meeting.getDate().compareTo(meetingList.get(i).getDate());
 
 			if (order == -1){
@@ -48,7 +48,7 @@ public class ContactManagerImpl implements ContactManager {
 		}
 		
 		//Date is further in future than any current meetings, meeting added to the end.
-		if (!inserted) {
+		if (!inserted){
 			meetingList.add(meeting);
 			inserted = true;
 		}
@@ -64,7 +64,7 @@ public class ContactManagerImpl implements ContactManager {
 	* @return boolean true if all contacts valid.
 	* @param set containing contacts being tested
 	*/
-	private boolean checkContacts(Set<Contact> set) {
+	private boolean checkContacts(Set<Contact> set){
 		if (set.isEmpty()){
 			System.out.println("No contacts specified.");
 			throw new IllegalArgumentException();
@@ -112,7 +112,7 @@ public class ContactManagerImpl implements ContactManager {
 	}
 
 	public Meeting getMeeting(int id){
-		for (Meeting m : meetingList) {
+		for (Meeting m : meetingList){
 			if (id == m.getId()){
 				return m;
 			}
@@ -125,7 +125,7 @@ public class ContactManagerImpl implements ContactManager {
 		List<Meeting> futureOnly = new ArrayList<Meeting>();
 		Calendar today = Calendar.getInstance();
 
-		for (Meeting m : fullList) {
+		for (Meeting m : fullList){
 			if (m.getDate().after(today)){
 				futureOnly.add(m);
 			}
@@ -138,10 +138,10 @@ public class ContactManagerImpl implements ContactManager {
 		List<Meeting> result = new ArrayList<Meeting>();
 		int length = meetingList.size();
 
-		for (int i = length - 1; i >= 0; i--) {
+		for (int i = length - 1; i >= 0; i--){
 			Meeting m = meetingList.get(i);
 			int relative = date.compareTo(m.getDate()); 
-			if (relative > 0) {
+			if (relative > 0){
 				i = -1; //list is in order, therefore traversal not necessary after this point
 			} else if (relative == 0){
 				result.add(0, meetingList.get(i)); //inserts elements to the front
@@ -164,7 +164,7 @@ public class ContactManagerImpl implements ContactManager {
 		List<Meeting> result = new ArrayList<Meeting>();
 		int length = meetingList.size();
 
-		for (Meeting m : meetingList) {
+		for (Meeting m : meetingList){
 			Set<Contact> set = m.getContacts();
 			if (set.contains(contact)){
 				result.add(m);
@@ -177,7 +177,7 @@ public class ContactManagerImpl implements ContactManager {
 		List<Meeting> fullList = getMeetingList(contact);
 		List<PastMeeting> pastOnly = new ArrayList<PastMeeting>();
 
-		for (Meeting m : fullList) {
+		for (Meeting m : fullList){
 			if (m instanceof PastMeeting){
 				PastMeeting meeting = (PastMeeting) m;
 				pastOnly.add(meeting);
@@ -227,7 +227,7 @@ public class ContactManagerImpl implements ContactManager {
 		insertInOrder(meetingNowInPast);
 	}
 
-	public void addNewContact(String name, String notes) {
+	public void addNewContact(String name, String notes){
 		if (this.contactSet == null){
 			this.contactSet = new LinkedHashSet<Contact>();
 		}
@@ -238,7 +238,7 @@ public class ContactManagerImpl implements ContactManager {
 			if (name.equals(null) || notes.equals(null)){
 				throw new NullPointerException();
 			}
-		} catch (NullPointerException e) {
+		} catch (NullPointerException e){
 			System.out.println("name or notes are null");
 			e.printStackTrace();
 		}
@@ -286,7 +286,7 @@ public class ContactManagerImpl implements ContactManager {
 	public Set<Contact> getContacts(int... ids){ //allows arguments with any number of ints (including zero)
 		Set<Contact> result = new LinkedHashSet<Contact>();
 
-		for (int i = 0; i < ids.length; i++) { //iterating through args
+		for (int i = 0; i < ids.length; i++){ //iterating through args
 			Iterator<Contact> iterator = contactSet.iterator();
 			while (iterator.hasNext()){
 				Contact person = iterator.next();
@@ -307,7 +307,7 @@ public class ContactManagerImpl implements ContactManager {
 	} 
 
 	public Set<Contact> getContacts(String name){
-		if (name == null) { 
+		if (name == null){ 
 	    	throw new NullPointerException();
 	    }
 		
@@ -337,12 +337,59 @@ public class ContactManagerImpl implements ContactManager {
 	}
 
 	public void flush(){
-		//method
+		String filename = "." + File.separator + "contacts.txt";
+		File database = new File(filename);
+
+		if (!database.exists()){
+			System.out.println("DATABASE DOES NOT EXIST"); //throw exception?
+			throw new IOException();
+		}
+
+		FileWriter fw = new FileWriter(database.getAbsoluteFile());
+		BufferedWriter bw = new BufferedWriter(fw);
+
+		Contact[] contactArray = contactSet.toArray(new Contact[]);
+		String line;
+
+		for (Contact c : contactArray){
+			String name = c.getName();
+			String stringID = String.valueOf(c.getId());
+			String notes = c.getNotes(); 
+			String line = "C" + '\t' + name + '\t' + stringID + '\t' + notes;
+			write(bw, line);
+		}
+
+		for (Meeting m : meetingList){
+			Calendar date = m.getDate();
+			String dateString = formatDate(date);
+			String stringID = String.valueOf(m.getId());
+			Set<Contact> = m.getContacts;
+			//change to to id,id String
+		}
+
+	}
+
+	private void writeLine(BufferedWriter bw, String line){
+		try {
+			bw.write(line);
+			bw.newLine();	
+		} catch (IOException e){
+			e.printStackTrace();
+		}finally{
+			if (bw != null){
+            	bw.close();
+			}
+		}
+	}
+
+	//formatting date
+	private String formatDate(Calendar date){
+		Date timeAndDate = date.getTime();
+		SimpleDateFormat f = new SimpleDateFormat("ddMMyyyy HH:mm");
+		return f.format(timeAndDate);
 	}
 
 	public void load(){
-		String filename = "." + File.separator + "contacts.txt";
-		File database = new File(filename);	
 		if (!database.exists()){
 			try {
 				database.createNewFile();
@@ -385,21 +432,29 @@ public class ContactManagerImpl implements ContactManager {
 					}
 				} else {
 					Calendar today = Calendar.getInstance();
-					
+
 				}
-				
 			}
 		} catch (IOException e){
 			System.out.println("I/O error.");
 			e.printStackTrace();			
 		} finally {
 			System.out.println("Contacts and Meetings loaded.");
-			out.close(); //throws IO Exception
+			closeReader(in); //throws IO Exception
 		}
 	}
 
+	private void closeReader(Reader reader){
+		try {
+			if (reader != null){
+			reader.close();
+			}
+		} catch (IOException ex){
+			ex.printStackTrace();
+		}
+	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args){
 		load();		
 	}
 }

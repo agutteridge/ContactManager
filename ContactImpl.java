@@ -31,7 +31,7 @@ public class ContactImpl implements Contact {
 	}
 
 	public void addNotes(String note){
-		if (this.notes == null || this.notes.equals("")){
+		if (this.notes == null){
 			this.notes = note;
 		} else {
 			this.notes += ", " + note;		
