@@ -339,4 +339,67 @@ public class ContactManagerImpl implements ContactManager {
 	public void flush(){
 		//method
 	}
+
+	public void load(){
+		String filename = "." + File.separator + "contacts.txt";
+		File database = new File(filename);	
+		if (!database.exists()){
+			try {
+				database.createNewFile();
+			} catch (IOException e){
+				System.out.println("Could not create " + database.getName());
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				copyOver(database);
+			} catch (IOException e){
+				System.out.println("I/O error");
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void copyOver(File input) throws IOException {
+		BufferedReader in = null;
+		boolean isContact;
+		try {
+			in = new BufferedReader(new FileReader(input));
+			String line;
+
+			while ((line = in.readLine()) != null){
+				String[] fields = line.split("\t"); 
+				if (fields[0].equals("C")){
+					isContact = true;
+				} else if (fields[0].equals("M")){
+					isContact = false;
+				}
+
+				if (isContact){
+					String name = fields[1];
+					String stringID = fields[2];
+					int intID = Integer.parseInt(stringID);
+					Contact c = new ContactImpl(name, intID);
+					if (fields.length == 4){
+						c.addNotes(fields[3]);
+					}
+				} else {
+					Calendar today = Calendar.getInstance();
+					
+				}
+				
+			}
+		} catch (IOException e){
+			System.out.println("I/O error.");
+			e.printStackTrace();			
+		} finally {
+			System.out.println("Contacts and Meetings loaded.");
+			out.close(); //throws IO Exception
+		}
+	}
+
+
+	public static void main(String[] args) {
+		load();		
+	}
 }
