@@ -155,9 +155,9 @@ public class TestingContactManagerImpl {
 	}
 
 	@Test
-	public void testAddNotes(){
+	public void testAddMeetingNotes(){
 		System.out.println("***TESTING: testAddNotes***");
-		test.addNotes(0, "meeting now in past");
+		test.addMeetingNotes(0, "meeting now in past");
 		List<Meeting> tempList = test.getAllMeetings();
 		String output = printMeetings(tempList);
 		assertTrue(test.getMeeting(0) instanceof PastMeetingImpl);		
@@ -203,14 +203,15 @@ public class TestingContactManagerImpl {
 		test.getFutureMeetingList(alice);
 	}
 
-	// @Test //FIND GETTER FOR SET
-	// public void testGetFutureMeetingListContact(){
-	// 	System.out.println("***TESTING: testGetFutureMeetingListContact***");
-	// 	Set<Contact> tempSet = test.getContacts(0);
-	// 	List<Meeting> tempList = test.getFutureMeetingList(date);
-	// 	String output = printMeetings(tempList);
-	// 	assertEquals(output, "201511, 0\r\n");
-	// }
+	@Test
+	public void testGetFutureMeetingListContact(){
+		System.out.println("***TESTING: testGetFutureMeetingListContact***");
+		Set<Contact> tempSet = test.getContacts(0);
+		Contact[] contactArray = tempSet.toArray(new Contact[1]);
+		List<Meeting> tempList = test.getFutureMeetingList(contactArray[0]);
+		String output = printMeetings(tempList);
+		assertEquals(output, "201511, 0\r\n");
+	}
 
 	//printing methods
 	public String printSet(Set<Contact> set){
@@ -220,20 +221,6 @@ public class TestingContactManagerImpl {
 		while (iterator.hasNext()){
 			Contact person = iterator.next();	
 			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "\r\n";
-		}
-
-		System.out.println(result);
-		return result;
-	}
-
-	public String printList(List<Meeting> list){
-		Iterator<Meeting> iterator = list.iterator();
-		String result = "";
-
-		while (iterator.hasNext()){	
-			Meeting m = iterator.next();
-			result += m.getDate() + ", " + m.getId() + ", " + printSet(m.getContacts()) 
-				+ ", " + "\r\n";
 		}
 
 		System.out.println(result);

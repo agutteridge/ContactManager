@@ -1,6 +1,6 @@
 import java.util.*;
  
-public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
+public class ContactManagerImpl implements ContactManager {
 	private Set<Contact> contactSet;
 	private List<Meeting> meetingList;
 
@@ -121,20 +121,17 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	public List<Meeting> getFutureMeetingList(Contact contact){
-		if(!contactSet.contains(contact)){
-			throw new IllegalArgumentException();
-		}
+		List<Meeting> fullList = getMeetingList(contact);
+		List<Meeting> futureOnly = new ArrayList<Meeting>();
+		Calendar today = Calendar.getInstance();
 
-		List<Meeting> result = new ArrayList<Meeting>();
-		int length = meetingList.size();
-
-		for (int i = length - 1; i >= 0; i--) {
-			Set<Contact> set = meetingList.get(i).getContacts();
-			if (set.contains(contact)){
-				result.add(meetingList.get(i));
+		for (Meeting m : fullList) {
+			if (m.getDate().after(today)){
+				futureOnly.add(m);
 			}
 		}
-		return result;
+
+		return futureOnly;
 	}
 
 	public List<Meeting> getFutureMeetingList(Calendar date){
@@ -142,7 +139,8 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		int length = meetingList.size();
 
 		for (int i = length - 1; i >= 0; i--) {
-			int relative = date.compareTo(meetingList.get(i).getDate()); 
+			Meeting m = meetingList.get(i);
+			int relative = date.compareTo(m.getDate()); 
 			if (relative > 0) {
 				i = -1; //list is in order, therefore traversal not necessary after this point
 			} else if (relative == 0){
@@ -153,17 +151,40 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 	}
 
 	/**
-	* Retrieval of Meetings, using date as a parameter. Used for generating IDs.
-	*
-	* Calls getFutureMeetingList
+	* Called by both getFutureMeetingList(Contact) and getPastMeetingList(Contact)
+	* 
+	* @return List of all meetings, past and future, that the contact attended/will attend 
+	* @param Contact to be searched for
 	*/
-	private List<Meeting> getMeetingList(Calendar date){
-		return getFutureMeetingList(date);
+	private List<Meeting> getMeetingList(Contact contact){
+		if(!contactSet.contains(contact)){
+			throw new IllegalArgumentException();
+		}
+
+		List<Meeting> result = new ArrayList<Meeting>();
+		int length = meetingList.size();
+
+		for (Meeting m : meetingList) {
+			Set<Contact> set = m.getContacts();
+			if (set.contains(contact)){
+				result.add(m);
+			}
+		}
+		return result;
 	}
 
-	// public List<PastMeeting> getPastMeetingList(Contact contact){
-	// 	//method
-	// }
+	public List<PastMeeting> getPastMeetingList(Contact contact){
+		List<Meeting> fullList = getMeetingList(contact);
+		List<PastMeeting> pastOnly = new ArrayList<PastMeeting>();
+
+		for (Meeting m : fullList) {
+			if (m instanceof PastMeeting){
+				PastMeeting meeting = (PastMeeting) m;
+				pastOnly.add(meeting);
+			}
+		}
+		return pastOnly;
+	}
 
 	public void addNewPastMeeting(Set<Contact> contacts, Calendar date, String text){
 		Calendar today = Calendar.getInstance();
@@ -184,8 +205,20 @@ public class ContactManagerImpl { //IMPLEMENTS CONTACT MANAGER
 		insertInOrder(meeting);
 	}
 
-	public void addNotes(int id, String text){
+	public void addMeetingNotes(int id, String text){
+		if (text == null){
+			throw new NullPointerException();
+		}
+
+		Calendar today = Calendar.getInstance();
+
 		FutureMeeting meetingToCast = getFutureMeeting(id); 
+		if (meetingToCast == null){
+			throw new IllegalArgumentException();
+		} else if (meetingToCast.getDate().before(today)){
+			throw new IllegalStateException();
+		}
+
 		Calendar dateToTransfer = meetingToCast.getDate();
 		Set<Contact> setToTransfer = meetingToCast.getContacts();
 
