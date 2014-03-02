@@ -29,4 +29,18 @@ public class PastMeetingImpl implements PastMeeting {
 	public String getNotes(){
 		return meetingNotes;
 	}
+
+	/**
+	* Adds notes to a pastMeeting. 
+	* 
+	* When read from a file, PastMeetings with no notes are constructed with an empty string.
+	* This method assumes that notes are always appended, not overwritten.
+	*/
+	public void addNotes(String note){
+		if (this.meetingNotes == null){
+			this.meetingNotes = note;
+		} else {
+			this.meetingNotes += ", " + note;		
+		}
+	}
 }
