@@ -16,6 +16,7 @@ public class TestingContactManagerImpl {
 
 	@After
 	public void tearDown(){
+		test.flush();
 		test = null;
 		System.out.println("***END OF TEST***");
 		System.out.println("");				
@@ -154,13 +155,10 @@ public class TestingContactManagerImpl {
 		test.getFutureMeeting(1);
 	}
 
-	@Test
+	@Test(expected=IllegalStateException.class)
 	public void testAddMeetingNotes(){
 		System.out.println("***TESTING: testAddNotes***");
 		test.addMeetingNotes(0, "meeting now in past");
-		List<Meeting> tempList = test.getAllMeetings();
-		String output = printMeetings(tempList);
-		assertTrue(test.getMeeting(0) instanceof PastMeetingImpl);		
 	}
 
 	@Test(expected=IllegalArgumentException.class)

@@ -352,70 +352,77 @@ public class ContactManagerImpl implements ContactManager {
 			//um one should have been made using Load in Main
 		}
 
-		FileWriter fw;
 		try {
-			fw = new FileWriter(f.getAbsoluteFile());
+			FileWriter fw = new FileWriter(f.getAbsoluteFile());
 			BufferedWriter bw = new BufferedWriter(fw);
-
-			Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]);
-			String line;
-
-			for (Contact c : contactArray){
-				String name = c.getName();
-				String identString = String.valueOf(c.getId());
-				String notes = c.getNotes(); 
-				line = "C" + '\t' + name + '\t' + identString + '\t' + notes;
-				writeLine(bw, line);
-			}
-
-			for (Meeting m : meetingList){
-				Calendar date = m.getDate();
-				String dateString = formatDate(date);
-				String identString = String.valueOf(m.getId());
-
-				Set<Contact> meetingContacts = m.getContacts();
-				contactArray = meetingContacts.toArray(new Contact[meetingContacts.size()]);
-				String contactIDs = "";
-				for (Contact c : contactArray){
-					contactIDs += String.valueOf(c.getId()) + ",";
-				}
-
-				String notes = "";
-				if (m instanceof PastMeeting){
-					PastMeetingImpl pastM = (PastMeetingImpl) m;
-					notes = pastM.getNotes();
-				}
-
-				line = "M" + '\t' + dateString + '\t' + identString + '\t' + contactIDs + '\t' + notes;
-				writeLine(bw, line);
-			}
-		} catch (IOException ie) {
-			//print something?
-		}
-	}
-
-	private void writeLine(BufferedWriter bw, String line){
-		try {
-			bw.write(line);
-			bw.newLine();	
-		} catch (IOException e){
-			e.printStackTrace();
-		}finally{
-			if (bw != null){
+			writeContacts(bw);
+			writeMeetings(bw);
 				try {
 					bw.close();
 				} catch (IOException ie) {
-					ie.printStackTrace();
+					System.out.println("Could not close.");
 				}
+		} catch (IOException ie){
+			System.out.println("File could not be found.");
+		}
+	}
+
+	private void writeContacts(BufferedWriter bw){
+		Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]);
+		String line;
+
+		for (int i = 0; i < contactArray.length; i++){
+			Contact c = contactArray[i];
+			String name = c.getName();
+			String identString = String.valueOf(c.getId());
+			String notes = c.getNotes(); 
+			line = "C" + '\t' + name + '\t' + identString + '\t' + notes;
+			try {
+				System.out.println("WRITING: " + line);
+				bw.write(line);
+				bw.newLine();
+			} catch (IOException e){
+				//do nothing
 			}
 		}
+	}
+
+	private void writeMeetings(BufferedWriter bw){
+		String line;
+
+		for (Meeting m : meetingList){
+			Calendar date = m.getDate();
+			String dateString = formatDate(date);
+			String identString = String.valueOf(m.getId());
+
+			Set<Contact> meetingContacts = m.getContacts();
+			Contact[] contactArray = meetingContacts.toArray(new Contact[meetingContacts.size()]);
+			String contactIDs = "";
+			for (Contact c : contactArray){
+				contactIDs += String.valueOf(c.getId()) + ",";
+			}
+
+			String notes = "";
+			if (m instanceof PastMeeting){
+				PastMeetingImpl pastM = (PastMeetingImpl) m;
+				notes = pastM.getNotes();
+			}
+
+			line = "M" + '\t' + dateString + '\t' + identString + '\t' + contactIDs + '\t' + notes;
+			try {
+				System.out.println("WRITING: " + line);
+				bw.write(line);
+				bw.newLine();	
+			} catch (IOException e){
+				//do nothing
+			}
+		}		
 	}
 
 	//formatting date
 	private String formatDate(Calendar date){
 		Date timeAndDate = date.getTime();
 		SimpleDateFormat f = new SimpleDateFormat("ddMMyyyy HH:mm");
-		System.out.println(f); //note month is (is not?) zero-based!
 		return f.format(timeAndDate);
 	}
 
@@ -436,10 +443,13 @@ public class ContactManagerImpl implements ContactManager {
 			}
 		} catch (IOException e){
 			System.out.println("I/O error.");
-			e.printStackTrace();			
+			e.printStackTrace();
 		} finally {
 			System.out.println("Contacts and Meetings loaded.");
-			closeReader(in); //throws IO Exception
+			try {
+				closeReader(in);
+			} catch (Exception e){
+			}
 		}
 	}
 
