@@ -1,3 +1,0 @@
-C	Sam	0	he is someone
-C	Sam	1	
-M	01022015 00:00	0	0,	

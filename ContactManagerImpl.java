@@ -493,31 +493,12 @@ public class ContactManagerImpl implements ContactManager {
 			meetingList = new ArrayList<Meeting>();
 		}	
 
-		Calendar today = Calendar.getInstance();
-		String dateString = fields[1]; //date in format "ddMMyyyy HH:mm"
-		Calendar date = Calendar.getInstance();
-		int year = Integer.parseInt(dateString.substring(4,8));
-		int month = Integer.parseInt(dateString.substring(2,4));
-		int day = Integer.parseInt(dateString.substring(0,2));
-		int hours = Integer.parseInt(dateString.substring(9,11));
-		int minutes = Integer.parseInt(dateString.substring(12,14));
-		date.set(year, month, day, hours, minutes);
-
+		Calendar date = convertToDate(fields[1]);
 		String identString = fields[2];
 		int identInt = Integer.parseInt(identString);
+		Set<Contact> contactsInMeeting = convertToContacts(fields[3]);
 
-		String contactIDs = fields[3]; //IDs in format "1,2,3,4,"
-		String[] identArrayString = identString.split(",");
-		int[] identArrayInt = new int[identArrayString.length];
-
-		//copying IDs into an array of integers
-		for (int i = 0; i < identArrayString.length; i++) {
-        	identArrayInt[i] = Integer.parseInt(identArrayString[i]);
-		} 
-
-		Set<Contact> contactsInMeeting = new LinkedHashSet<Contact>();
-		contactsInMeeting = getContacts(identArrayInt);
-
+		Calendar today = Calendar.getInstance();
 		Meeting m;
 		if (date.before(today)){
 			String notes;
@@ -535,6 +516,37 @@ public class ContactManagerImpl implements ContactManager {
 			meetingList.add(m);
 			System.out.println("Added meeting " + identInt);			
 		}
+	}
+
+	/**
+	* Converts a String into a Calendar object
+	* 
+	* @param String in the format "ddMMyyyy HH:mm"
+	* @return Calendar object set to date and time specified in the String
+	*/
+	private Calendar convertToDate(String dateString){
+		Calendar result = Calendar.getInstance();
+		int year = Integer.parseInt(dateString.substring(4,8));
+		int month = Integer.parseInt(dateString.substring(2,4)) - 1; //to compensate for SimpleDateFormat
+		int day = Integer.parseInt(dateString.substring(0,2));
+		int hours = Integer.parseInt(dateString.substring(9,11));
+		int minutes = Integer.parseInt(dateString.substring(12,14));
+		result.set(year, month, day, hours, minutes);
+		return result;
+	}
+
+	private Set<Contact> convertToContacts(String contacts){
+		Set<Contact> result = new LinkedHashSet<Contact>();
+		String[] identArrayString = contacts.split(",");
+		int[] identArrayInt = new int[identArrayString.length];
+
+		//copying IDs into an array of integers
+		for (int i = 0; i < identArrayString.length; i++) {
+        	identArrayInt[i] = Integer.parseInt(identArrayString[i]);
+		} 
+
+		result = getContacts(identArrayInt);
+		return result;
 	}
 
 	private void closeReader(Reader reader){
