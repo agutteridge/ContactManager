@@ -235,8 +235,8 @@ public class ContactManagerImpl implements ContactManager {
 	}
 
 	public void addNewContact(String name, String notes){
-		if (this.contactSet == null){
-			this.contactSet = new LinkedHashSet<Contact>();
+		if (contactSet == null){
+			contactSet = new LinkedHashSet<Contact>();
 		}
 
 		int newId = generateContactId();
@@ -343,6 +343,24 @@ public class ContactManagerImpl implements ContactManager {
 		return contactSet;
 	}
 
+	public void launch(){
+		String filename = "." + File.separator + "contacts.txt";
+		File f = new File(filename);
+
+		if (!f.exists()){ 
+			try {
+				f.createNewFile();
+				System.out.println("Creating new file?");
+			} catch (IOException e){
+				System.out.println("Could not create " + f.getName());
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("Copying.");
+			copyOver(f);
+		}		
+	}
+
 	public void flush(){
 		String filename = "." + File.separator + "contacts.txt";
 		File f = new File(filename);
@@ -426,7 +444,8 @@ public class ContactManagerImpl implements ContactManager {
 		return f.format(timeAndDate);
 	}
 
-	private void copyOver(File input) throws IOException {
+	private void copyOver(File input){
+		System.out.println("copyOver method started.");
 		BufferedReader in = null;
 		boolean isContact;
 		try {
@@ -453,7 +472,11 @@ public class ContactManagerImpl implements ContactManager {
 		}
 	}
 
-	private void loadContact(String[] fields){
+	public void loadContact(String[] fields){
+		if (contactSet == null){
+			contactSet = new LinkedHashSet<Contact>();
+		}
+
 		String name = fields[1];
 		String identString = fields[2];
 		int identInt = Integer.parseInt(identString);
@@ -461,9 +484,15 @@ public class ContactManagerImpl implements ContactManager {
 		if (fields.length == 4){
 			c.addNotes(fields[3]);
 		}
+		contactSet.add(c);
+		System.out.println("Added contact " + identInt);	
 	}
 
 	private void loadMeeting(String[] fields){
+		if (meetingList == null){
+			meetingList = new ArrayList<Meeting>();
+		}	
+
 		Calendar today = Calendar.getInstance();
 		String dateString = fields[1]; //date in format "ddMMyyyy HH:mm"
 		Calendar date = Calendar.getInstance();
@@ -499,8 +528,12 @@ public class ContactManagerImpl implements ContactManager {
 			}
 
 			m = new PastMeetingImpl(date, identInt, contactsInMeeting, notes); 
+			meetingList.add(m);
+			System.out.println("Added meeting " + identInt);
 		} else {
 			m = new FutureMeetingImpl(date, identInt, contactsInMeeting); 			
+			meetingList.add(m);
+			System.out.println("Added meeting " + identInt);			
 		}
 	}
 
@@ -515,26 +548,6 @@ public class ContactManagerImpl implements ContactManager {
 	}
 
 	public static void main(String[] args){
-		ContactManagerImpl cmi = new ContactManagerImpl();
-		
-		String filename = "." + File.separator + "contacts.txt";
-		File f = new File(filename);
-
-		if (!f.exists()){ 
-			try {
-				f.createNewFile();
-			} catch (IOException e){
-				System.out.println("Could not create " + f.getName());
-				e.printStackTrace();
-			}
-		} else {
-			try {
-				cmi.copyOver(f);
-			} catch (IOException e){
-				System.out.println("I/O error");
-				e.printStackTrace();
-			}
-		}
 
 	}
 }

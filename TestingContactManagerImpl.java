@@ -211,6 +211,25 @@ public class TestingContactManagerImpl {
 		assertEquals(output, "201511, 0\r\n");
 	}
 
+	@Test
+	public void testSimpleLoad(){
+		System.out.println("***TESTING: testSimpleLoad***");
+		Set<Contact> set1 = test.getContacts("Sam");
+		Calendar date1 = new GregorianCalendar(1970, 1, 1);
+		test.addNewContact("Alice", "new contact");
+		Set<Contact> set2 = test.getContacts("Alice");
+		Calendar date2 = new GregorianCalendar(2015, 4, 31);
+		test.addNewPastMeeting(set1, date1, "new meeting in the past.");
+		test.addFutureMeeting(set2, date2);
+		test.flush();
+		
+		ContactManagerImpl newTest = new ContactManagerImpl();
+		newTest.launch();
+		List<Meeting> tempList = newTest.getAllMeetings();
+		String output = printMeetings(tempList);
+		assertEquals(output, "197011, 1\r\n201511, 0\r\n2015431, 2\r\n");		
+	}
+
 	//printing methods
 	public String printSet(Set<Contact> set){
 		Iterator<Contact> iterator = set.iterator();
