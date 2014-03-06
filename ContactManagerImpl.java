@@ -1,8 +1,8 @@
 import java.util.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
- 
-public class ContactManagerImpl implements ContactManager {
+
+public class ContactManagerImpl extends Thread implements ContactManager {
 	private Set<Contact> contactSet;
 	private List<Meeting> meetingList;
 
@@ -139,14 +139,31 @@ public class ContactManagerImpl implements ContactManager {
 	public List<Meeting> getFutureMeetingList(Calendar date){
 		List<Meeting> result = new ArrayList<Meeting>();
 		int length = meetingList.size();
+		//creating new instance of Calendar where time is 00:00
+		Calendar inputDateOnly = new GregorianCalendar(date.get(Calendar.YEAR), 
+			date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
 
 		for (int i = length - 1; i >= 0; i--){
 			Meeting m = meetingList.get(i);
-			int relative = date.compareTo(m.getDate()); 
-			if (relative > 0){
-				i = -1; //list is in order, therefore traversal not necessary after this point
-			} else if (relative == 0){
-				result.add(0, meetingList.get(i)); //inserts elements to the front
+			Calendar mDate = m.getDate();
+			Calendar compareDateOnly = new GregorianCalendar(mDate.get(Calendar.YEAR), 
+				mDate.get(Calendar.MONTH), mDate.get(Calendar.DAY_OF_MONTH));
+			if (inputDateOnly.equals(compareDateOnly)){
+				boolean inserted = false;
+				//ensuring result list is in order
+				for (int ii = 0; ii < result.size(); ii++){
+					int order = mDate.compareTo(result.get(ii).getDate());
+
+					if (order == -1){
+						result.add(ii, m); //inserts meeting at index i
+						inserted = true;
+						ii = result.size() + 1; //break out of for loop
+					}
+				}
+				
+				if (!inserted){
+					result.add(m);
+				}
 			}
 		}
 		return result;
@@ -386,55 +403,63 @@ public class ContactManagerImpl implements ContactManager {
 	}
 
 	private void writeContacts(BufferedWriter bw){
-		Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]);
-		String line;
+		if (contactSet != null){
+			Contact[] contactArray = contactSet.toArray(new Contact[contactSet.size()]);
+			String line;
 
-		for (int i = 0; i < contactArray.length; i++){
-			Contact c = contactArray[i];
-			String name = c.getName();
-			String identString = String.valueOf(c.getId());
-			String notes = c.getNotes(); 
-			line = "C" + '\t' + name + '\t' + identString + '\t' + notes;
-			try {
-				System.out.println("WRITING: " + line);
-				bw.write(line);
-				bw.newLine();
-			} catch (IOException e){
-				//do nothing
+			for (int i = 0; i < contactArray.length; i++){
+				Contact c = contactArray[i];
+				String name = c.getName();
+				String identString = String.valueOf(c.getId());
+				String notes = c.getNotes(); 
+				line = "C" + '\t' + name + '\t' + identString + '\t' + notes;
+				try {
+					System.out.println("WRITING: " + line);
+					bw.write(line);
+					bw.newLine();
+				} catch (IOException e){
+					//do nothing
+				}
 			}
+		} else {
+			System.out.println("No contacts written to file.");
 		}
 	}
 
-	private void writeMeetings(BufferedWriter bw){
+	private void writeMeetings(BufferedWriter bw){				
 		String line;
 
-		for (Meeting m : meetingList){
-			Calendar date = m.getDate();
-			String dateString = formatDate(date);
-			String identString = String.valueOf(m.getId());
+		if (meetingList != null){
+			for (Meeting m : meetingList){
+				Calendar date = m.getDate();
+				String dateString = formatDate(date);
+				String identString = String.valueOf(m.getId());
 
-			Set<Contact> meetingContacts = m.getContacts();
-			Contact[] contactArray = meetingContacts.toArray(new Contact[meetingContacts.size()]);
-			String contactIDs = "";
-			for (Contact c : contactArray){
-				contactIDs += String.valueOf(c.getId()) + ",";
-			}
+				Set<Contact> meetingContacts = m.getContacts();
+				Contact[] contactArray = meetingContacts.toArray(new Contact[meetingContacts.size()]);
+				String contactIDs = "";
+				for (Contact c : contactArray){
+					contactIDs += String.valueOf(c.getId()) + ",";
+				}
 
-			String notes = "";
-			if (m instanceof PastMeeting){
-				PastMeetingImpl pastM = (PastMeetingImpl) m;
-				notes = pastM.getNotes();
-			}
+				String notes = "";
+				if (m instanceof PastMeeting){
+					PastMeetingImpl pastM = (PastMeetingImpl) m;
+					notes = pastM.getNotes();
+				}
 
-			line = "M" + '\t' + dateString + '\t' + identString + '\t' + contactIDs + '\t' + notes;
-			try {
-				System.out.println("WRITING: " + line);
-				bw.write(line);
-				bw.newLine();	
-			} catch (IOException e){
-				//do nothing
-			}
-		}		
+				line = "M" + '\t' + dateString + '\t' + identString + '\t' + contactIDs + '\t' + notes;
+				try {
+					System.out.println("WRITING: " + line);
+					bw.write(line);
+					bw.newLine();	
+				} catch (IOException e){
+					//do nothing
+				}
+			}		
+		} else {
+			System.out.println("No meetings written to file.");
+		}
 	}
 
 	//formatting date
@@ -559,7 +584,15 @@ public class ContactManagerImpl implements ContactManager {
 		}
 	}
 
-	public static void main(String[] args){
+	public void run(){
+		flush();
+	}
 
+	public static void main(String[] args){
+		try {
+			Runtime.getRuntime().addShutdownHook(new ContactManagerImpl());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
