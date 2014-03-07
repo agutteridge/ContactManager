@@ -154,6 +154,8 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 				for (int ii = 0; ii < result.size(); ii++){
 					int order = mDate.compareTo(result.get(ii).getDate());
 
+
+
 					if (order == -1){
 						result.add(ii, m); //inserts meeting at index i
 						inserted = true;
@@ -270,6 +272,9 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		Contact anotherContact = new ContactImpl(name, newId);
 		anotherContact.addNotes(notes);
 		contactSet.add(anotherContact);
+		if (contactSet != null){
+			System.out.println("CONTACT ADDED");
+		}
 	}
 
 	/**
@@ -373,7 +378,7 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 				e.printStackTrace();
 			}
 		} else {
-			System.out.println("Copying.");
+			System.out.println("Copying...");
 			copyOver(f);
 		}		
 	}
@@ -411,7 +416,10 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 				Contact c = contactArray[i];
 				String name = c.getName();
 				String identString = String.valueOf(c.getId());
-				String notes = c.getNotes(); 
+				String notes = c.getNotes();
+				if (notes == null){
+					notes = ""; //prevention of 'null' being written
+				} 
 				line = "C" + '\t' + name + '\t' + identString + '\t' + notes;
 				try {
 					System.out.println("WRITING: " + line);
@@ -470,7 +478,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 	}
 
 	private void copyOver(File input){
-		System.out.println("copyOver method started.");
 		BufferedReader in = null;
 		boolean isContact;
 		try {
@@ -589,10 +596,22 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 	}
 
 	public static void main(String[] args){
+		ContactManagerImpl test = new ContactManagerImpl();
+
 		try {
-			Runtime.getRuntime().addShutdownHook(new ContactManagerImpl());
+			Runtime.getRuntime().addShutdownHook(test);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		test.launch();
+		test.addNewContact("Sam", "he is someone");
+		test.addNewContact("Sam", "");
+		Calendar date = Calendar.getInstance();
+		date.set(2015, 0, 1, 0, 0);
+		Set<Contact> tempSet = test.getContacts(0);
+		test.addFutureMeeting(tempSet, date);
+		Scanner in = new Scanner(System.in);
+		String pretendInput = in.nextLine();
 	}
 }
