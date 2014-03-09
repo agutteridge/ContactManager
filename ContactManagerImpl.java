@@ -224,7 +224,7 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		FutureMeeting meetingToCast = getFutureMeeting(id); 
 		if (meetingToCast == null){
 			throw new IllegalArgumentException();
-		} else if (meetingToCast.getDate().after(today)){ 
+		} else if (meetingToCast.getDate().after(today)){
 			throw new IllegalStateException();
 		}
 
@@ -246,20 +246,38 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 			contactSet = new LinkedHashSet<Contact>();
 		}
 
-		int newId = generateContactId();
-
-		try {
-			if (name.equals(null) || notes.equals(null)){
-				throw new NullPointerException();
-			}
-		} catch (NullPointerException e){
-			System.out.println("name or notes are null");
-			e.printStackTrace();
+		if (name == null || notes == null){
+			throw new NullPointerException();
 		}
 
-		Contact anotherContact = new ContactImpl(name, newId);
-		anotherContact.addNotes(notes);
-		contactSet.add(anotherContact);
+		if (isUnique(name, notes)){
+			int newId = generateContactId();
+			Contact anotherContact = new ContactImpl(name, newId);
+			anotherContact.addNotes(notes);
+			contactSet.add(anotherContact);
+		} else {
+			System.out.println("Identical contact already in database.");
+		}
+	}
+
+	/**
+	* Checks to see whether new contact already exists
+	*
+	* @return boolean, true if unique (to be added) and false if already existing
+	* @param name of contact to search for, notes to be compared against
+	*/
+	private boolean isUnique(String name, String notes){
+		Set<Contact> set = getContacts(name);
+		Iterator<Contact> iterator = set.iterator();
+		boolean result = true;
+
+		while (iterator.hasNext()){
+			Contact person = iterator.next();
+			if (person.getNotes().equals(notes)){
+				result = false;
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -500,6 +518,8 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		Contact c = new ContactImpl(name, identInt);
 		if (fields.length == 4){
 			c.addNotes(fields[3]);
+		} else {
+			c.addNotes(""); //prevention of 'null' being loaded
 		}
 		contactSet.add(c);
 	}
