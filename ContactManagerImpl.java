@@ -377,7 +377,7 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 				e.printStackTrace();
 			}
 		} else {
-			System.out.println("Copying...");
+			System.out.println("Loading...");
 			copyOver(f);
 		}		
 	}
