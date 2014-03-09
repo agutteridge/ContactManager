@@ -276,6 +276,41 @@ public class TestingContactManagerImpl {
 		assertTrue(m instanceof PastMeeting);
 	}
 
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddMeetingNotesMeetingNotExist(){
+		System.out.println("***TESTING: testAddMeetingNotesMeetingNotExist***");
+		test.addMeetingNotes(23, "meeting now in past");
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void testAddMeetingNotesMeetingInFuture(){
+		System.out.println("***TESTING: testAddMeetingNotesMeetingInFuture***");
+		test.addNewContact("Alice", "new contact");
+		Set<Contact> tempSet = test.getContacts("Alice");	
+		Calendar date = Calendar.getInstance();
+		date.set(2015, Calendar.JANUARY, 1);
+		int id = test.addFutureMeeting(tempSet, date);
+		test.addMeetingNotes(id, "yay");
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testAddMeetingNotesNull(){
+		System.out.println("***TESTING: testAddMeetingNotesNull***");
+		test.addMeetingNotes(0, null);
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testAddNewContactNullName(){
+		System.out.println("***TESTING: testAddNewContactNullName***");
+		test.addNewContact(null, "he is someone");
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testAddNewContactNullNotes(){
+		System.out.println("***TESTING: testAddNewContactNullNotes***");
+		test.addNewContact("Sam", null);
+	}
+
 	@Test
 	public void testGetContactsInts(){
 		System.out.println("***TESTING: testGetContactsInts***");
@@ -333,18 +368,6 @@ public class TestingContactManagerImpl {
 		System.out.println("***TESTING: testGetContactsStringNull***");
 		String str = null;
 		Set<Contact> tempSet = test.getContacts(str);
-	}
-
-	@Test(expected=NullPointerException.class)
-	public void testAddNewContactNullName(){
-		System.out.println("***TESTING: testAddNewContactNullName***");
-		test.addNewContact(null, "he is someone");
-	}
-
-	@Test(expected=NullPointerException.class)
-	public void testAddNewContactNullNotes(){
-		System.out.println("***TESTING: testAddNewContactNullNotes***");
-		test.addNewContact("Sam", null);
 	}
 
 	@Test
