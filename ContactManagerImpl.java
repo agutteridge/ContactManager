@@ -40,7 +40,8 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		boolean inserted = false;
 
 		for (int i = 0; i < meetingList.size(); i++){
-			int order = meeting.getDate().compareTo(meetingList.get(i).getDate());
+			Meeting m = meetingList.get(i);
+			int order = meeting.getDate().compareTo(m.getDate());
 
 			if (order == -1){
 				meetingList.add(i, meeting); //inserts meeting at index i
@@ -167,7 +168,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		}
 
 		List<Meeting> result = new ArrayList<Meeting>();
-		int length = meetingList.size();
 
 		for (Meeting m : meetingList){
 			Set<Contact> set = m.getContacts();
@@ -482,7 +482,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 
 	private void copyOver(File input){
 		BufferedReader in = null;
-		boolean isContact;
 		try {
 			in = new BufferedReader(new FileReader(input));
 			String line;
@@ -621,5 +620,8 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		test.addFutureMeeting(tempSet, date);
 		Scanner in = new Scanner(System.in);
 		String pretendInput = in.nextLine();
+		while (pretendInput != "exit"){
+			pretendInput = in.nextLine();
+		}
 	}
 }
