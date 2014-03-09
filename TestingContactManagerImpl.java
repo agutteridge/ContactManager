@@ -238,6 +238,7 @@ public class TestingContactManagerImpl {
 
 	@Test(expected=NullPointerException.class)
 	public void testAddNewPastMeetingNullSet(){
+		System.out.println("***TESTING: testAddNewPastMeetingNullSet***");
 		Calendar date = Calendar.getInstance();
 		date.set(1990, Calendar.APRIL, 29);
 		Set<Contact> tempSet = null;
@@ -246,6 +247,7 @@ public class TestingContactManagerImpl {
 
 	@Test(expected=NullPointerException.class)
 	public void testAddNewPastMeetingNullDate(){
+		System.out.println("***TESTING: testAddNewPastMeetingNullDate***");
 		Calendar date = null;
 		Set<Contact> tempSet = test.getContacts(0);
 		test.addNewPastMeeting(tempSet, date, "special day!"); 		
@@ -253,6 +255,7 @@ public class TestingContactManagerImpl {
 
 	@Test(expected=NullPointerException.class)
 	public void testAddNewPastMeetingNullNotes(){
+		System.out.println("***TESTING: testAddNewPastMeetingNullNotes***");
 		Calendar date = Calendar.getInstance();
 		date.set(1990, Calendar.APRIL, 29);
 		Set<Contact> tempSet = test.getContacts(0);
@@ -273,6 +276,8 @@ public class TestingContactManagerImpl {
 		wait(date);
 		test.addMeetingNotes(id, "meeting now in past");
 		Meeting m = test.getPastMeeting(id);
+		List<Meeting> tempList = test.getAllMeetings();
+		String output = printMeetings(tempList);
 		assertTrue(m instanceof PastMeeting);
 	}
 
@@ -470,7 +475,6 @@ public class TestingContactManagerImpl {
 			result += person.getName() + ", " + person.getId() + ", " + person.getNotes() + "\r\n";
 		}
 
-		System.out.println(result);
 		return result;
 	}
 
@@ -505,7 +509,6 @@ public class TestingContactManagerImpl {
 			result += formatDate(m.getDate()) + ", " + m.getId() + "\r\n";
 		}
 
-		System.out.println(result);
 		return result;
 	}
 

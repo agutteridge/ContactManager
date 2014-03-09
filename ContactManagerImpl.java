@@ -353,10 +353,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 			}
 		}
 
-		if (result.isEmpty()){
-			System.out.println("No match found.");
-		}		
-
 		return result;
 	}
 
@@ -612,12 +608,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		}
 
 		test.launch();
-		test.addNewContact("Sam", "he is someone");
-		test.addNewContact("Sam", "");
-		Calendar date = Calendar.getInstance();
-		date.set(2015, 0, 1, 0, 0);
-		Set<Contact> tempSet = test.getContacts(0);
-		test.addFutureMeeting(tempSet, date);
 		Scanner in = new Scanner(System.in);
 		String pretendInput = in.nextLine();
 		while (pretendInput != "exit"){
