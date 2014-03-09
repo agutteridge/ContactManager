@@ -143,29 +143,13 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		Calendar inputDateOnly = new GregorianCalendar(date.get(Calendar.YEAR), 
 			date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
 
-		for (int i = length - 1; i >= 0; i--){
+		for (int i = 0; i < length; i++){
 			Meeting m = meetingList.get(i);
 			Calendar mDate = m.getDate();
 			Calendar compareDateOnly = new GregorianCalendar(mDate.get(Calendar.YEAR), 
 				mDate.get(Calendar.MONTH), mDate.get(Calendar.DAY_OF_MONTH));
 			if (inputDateOnly.equals(compareDateOnly)){
-				boolean inserted = false;
-				//ensuring result list is in order
-				for (int ii = 0; ii < result.size(); ii++){
-					int order = mDate.compareTo(result.get(ii).getDate());
-
-
-
-					if (order == -1){
-						result.add(ii, m); //inserts meeting at index i
-						inserted = true;
-						ii = result.size() + 1; //break out of for loop
-					}
-				}
-				
-				if (!inserted){
 					result.add(m);
-				}
 			}
 		}
 		return result;
@@ -208,6 +192,10 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 	}
 
 	public void addNewPastMeeting(Set<Contact> contacts, Calendar date, String text){
+		if (text == null){
+			throw new NullPointerException();
+		}		
+
 		Calendar today = Calendar.getInstance();
 		if (date.after(today)){
 			System.out.println("Meeting is in the future.");
@@ -272,9 +260,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		Contact anotherContact = new ContactImpl(name, newId);
 		anotherContact.addNotes(notes);
 		contactSet.add(anotherContact);
-		if (contactSet != null){
-			System.out.println("CONTACT ADDED");
-		}
 	}
 
 	/**
@@ -517,7 +502,6 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 			c.addNotes(fields[3]);
 		}
 		contactSet.add(c);
-		System.out.println("Added contact " + identInt);	
 	}
 
 	private void loadMeeting(String[] fields){
@@ -542,11 +526,9 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 
 			m = new PastMeetingImpl(date, identInt, contactsInMeeting, notes); 
 			meetingList.add(m);
-			System.out.println("Added meeting " + identInt);
 		} else {
 			m = new FutureMeetingImpl(date, identInt, contactsInMeeting); 			
 			meetingList.add(m);
-			System.out.println("Added meeting " + identInt);			
 		}
 	}
 
@@ -567,6 +549,12 @@ public class ContactManagerImpl extends Thread implements ContactManager {
 		return result;
 	}
 
+	/**
+	* Converts contacts written as IDs in format 1,2,3, to Contact objects
+	* 
+	* @return set of contacts for meeting
+	* @param string to be converted
+	*/
 	private Set<Contact> convertToContacts(String contacts){
 		Set<Contact> result = new LinkedHashSet<Contact>();
 		String[] identArrayString = contacts.split(",");
