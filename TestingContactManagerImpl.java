@@ -8,7 +8,7 @@ public class TestingContactManagerImpl {
 	@Before
 	public void setUp(){
 		test.addNewContact("Sam", "he is someone");
-		test.addNewContact("Sam", "");
+		test.addNewContact("Sam", "second person");
 		Calendar date = Calendar.getInstance();
 		date.set(2015, 0, 1, 0, 0);
 		Set<Contact> tempSet = test.getContacts(0);
@@ -21,6 +21,23 @@ public class TestingContactManagerImpl {
 		test = null;
 		System.out.println("***END OF TEST***");
 		System.out.println("");				
+	}
+
+	@Test
+	public void testAddFutureMeeting(){
+		System.out.println("***TESTING: testAddFutureMeeting***");
+		List<Meeting> tempList = test.getAllMeetings();
+		String output = printMeetings(tempList);
+		assertEquals(output, "201501, 0\r\n");
+	}
+
+	@Test
+	public void testAddFutureMeetingContacts(){
+		System.out.println("***TESTING: testAddFutureMeetingContacts***");
+		Meeting m = test.getMeeting(0);
+		Set<Contact> tempSet = m.getContacts();
+		String output = printSet(tempSet); 
+		assertEquals(output, "Sam, 0, he is someone\r\n");		
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -53,29 +70,6 @@ public class TestingContactManagerImpl {
 	}
 
 	@Test
-	public void testAddFutureMeeting(){
-		System.out.println("***TESTING: testAddFutureMeeting***");
-		List<Meeting> tempList = test.getAllMeetings();
-		String output = printMeetings(tempList);
-		assertEquals(output, "201501, 0\r\n");
-	}
-
-	@Test
-	public void testAddFutureMeetingContacts(){
-		System.out.println("***TESTING: testAddFutureMeetingContacts***");
-		Meeting m = test.getMeeting(0);
-		Set<Contact> tempSet = m.getContacts();
-		String output = printSet(tempSet); 
-		assertEquals(output, "Sam, 0, he is someone\r\n");		
-	}
-
-	@Test(expected=IllegalArgumentException.class)
-	public void testGetPastMeetingFuture(){
-		System.out.println("***TESTING: testGetPastMeetingFuture***");
-		test.getPastMeeting(0);
-	}
-
-	@Test
 	public void testGetPastMeeting(){
 		System.out.println("***TESTING: testGetPastMeeting***");
 		Calendar date = Calendar.getInstance();
@@ -86,11 +80,51 @@ public class TestingContactManagerImpl {
 		assertTrue(m instanceof PastMeeting);
 	}
 
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetPastMeetingFuture(){
+		System.out.println("***TESTING: testGetPastMeetingFuture***");
+		test.getPastMeeting(0);
+	}
+
+	@Test
+	public void testGetPastMeetingNull(){
+		System.out.println("***TESTING: testGetPastMeetingNull***");
+		Meeting m = test.getPastMeeting(23);
+		System.out.println(m);
+		assertNull(m);
+	}
+
 	@Test
 	public void testGetFutureMeeting(){
 		System.out.println("***TESTING: testGetFutureMeeting***");
 		Meeting m = test.getFutureMeeting(0);
 		assertTrue(m instanceof FutureMeeting);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testGetFutureMeetingIDinPast(){
+		System.out.println("***TESTING: testGetFutureMeetingIDinPast***");
+		Set<Contact> set = test.getContacts("Sam");
+		Calendar date = Calendar.getInstance();
+		date.set(1970, Calendar.JANUARY, 1);
+		test.addNewPastMeeting(set, date, "new meeting in the past.");
+		test.getFutureMeeting(1);
+	}
+
+	@Test
+	public void testGetFutureMeetingNull(){
+		System.out.println("***TESTING: testGetFutureMeetingNull***");
+		Meeting m = test.getFutureMeeting(23);
+		assertNull(m);
+	}
+
+	@Test
+	public void testGetMeeting(){
+		System.out.println("***TESTING: testGetMeeting***");
+		Meeting m = test.getMeeting(0);
+		String output = formatDate(m.getDate()) + ", " + m.getId();
+		System.out.println(output);
+		assertEquals(output, "201501, 0");
 	}
 
 	@Test
@@ -101,14 +135,33 @@ public class TestingContactManagerImpl {
 		assertNull(m);
 	}
 
+	@Test
+	public void testGetFutureMeetingListContact(){
+		System.out.println("***TESTING: testGetFutureMeetingListContact***");
+		Set<Contact> tempSet = test.getContacts(0);
+		Contact[] contactArray = tempSet.toArray(new Contact[1]);
+		List<Meeting> tempList = test.getFutureMeetingList(contactArray[0]);
+		String output = printMeetings(tempList);
+		assertEquals(output, "201501, 0\r\n");
+	}
+
 	@Test(expected=IllegalArgumentException.class)
-	public void testGetFutureMeetinginPast(){
-		System.out.println("***TESTING: testGetFutureMeetinginPast***");
-		Set<Contact> set = test.getContacts("Sam");
-		Calendar date = Calendar.getInstance();
-		date.set(1970, Calendar.JANUARY, 1);
-		test.addNewPastMeeting(set, date, "new meeting in the past.");
-		test.getFutureMeeting(1);
+	public void testGetFutureMeetingListContactUnknownContact(){
+		System.out.println("***TESTING: testGetFutureMeetingListContactUnknownContact***");
+		Contact alice = new ContactImpl("alice", 6);
+		test.getFutureMeetingList(alice);
+	}
+
+	@Test
+	public void testGetFutureMeetingListContactEmpty(){
+		System.out.println("***TESTING: testGetFutureMeetingListContactEmpty***");
+		test.addNewContact("Alice", "new contact");		
+		Set<Contact> set = test.getContacts("Alice");
+		Contact[] contactArray = set.toArray(new Contact[1]);
+		Contact alice = contactArray[0];
+		List<Meeting> result = test.getFutureMeetingList(alice);
+		String output = printMeetings(result);
+		assertEquals(output, "");
 	}
 
 	@Test
@@ -130,21 +183,97 @@ public class TestingContactManagerImpl {
 		assertEquals(output, "201501, 0\r\n201501, 2\r\n201501, 1\r\n");
 	}
 
+	//also tests addNewPastMeeting
+	@Test
+	public void testGetPastMeetingListContact(){
+		System.out.println("***TESTING: testGetPastMeetingListContact***");
+		Calendar date = Calendar.getInstance();
+		date.set(1990, Calendar.APRIL, 29);
+		Set<Contact> tempSet = test.getContacts(0);
+		test.addNewPastMeeting(tempSet, date, "special day!"); 		
+		Contact[] contactArray = tempSet.toArray(new Contact[1]);
+		List<PastMeeting> tempList = test.getPastMeetingList(contactArray[0]);
+		String output = printMeetings(tempList);
+		assertEquals(output, "1990329, 1\r\n");
+	}
+
 	@Test(expected=IllegalArgumentException.class)
-	public void testGetFutureMeetingListContactUnknownContact(){
-		System.out.println("***TESTING: testGetFutureMeetingListContactUnknownContact***");
+	public void testGetPastMeetingListContactUnknownContact(){
+		System.out.println("***TESTING: testGetPastMeetingListContactUnknownContact***");
 		Contact alice = new ContactImpl("alice", 6);
-		test.getFutureMeetingList(alice);
+		test.getPastMeetingList(alice);
 	}
 
 	@Test
-	public void testGetFutureMeetingListContact(){
-		System.out.println("***TESTING: testGetFutureMeetingListContact***");
+	public void testGetPastMeetingListContactEmpty(){
+		System.out.println("***TESTING: testGetPastMeetingListContactEmpty***");
+		test.addNewContact("Alice", "new contact");		
+		Set<Contact> set = test.getContacts("Alice");
+		Contact[] contactArray = set.toArray(new Contact[1]);
+		Contact alice = contactArray[0];
+		List<PastMeeting> result = test.getPastMeetingList(alice);
+		String output = printMeetings(result);
+		assertEquals(output, "");
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddNewPastMeetingEmptyContactSet(){
+		System.out.println("***TESTING: testAddNewPastMeetingEmptyContactSet***");
+		Set<Contact> tempSet = new LinkedHashSet<Contact>();
+		Calendar date = Calendar.getInstance();
+		date.set(1990, Calendar.APRIL, 29);
+		test.addNewPastMeeting(tempSet, date, "special day!");
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddNewPastMeetingUnknownContact(){
+		System.out.println("***TESTING: testAddNewPastMeetingUnknownContact***");
+		Set<Contact> tempSet = new LinkedHashSet<Contact>();
+		Contact alice = new ContactImpl("Alice", 0);
+		tempSet.add(alice);
+		Calendar date = Calendar.getInstance();
+		date.set(1990, Calendar.APRIL, 29);
+		test.addNewPastMeeting(tempSet, date, "special day!");
+	}	
+
+	@Test(expected=NullPointerException.class)
+	public void testAddNewPastMeetingNullSet(){
+		Calendar date = Calendar.getInstance();
+		date.set(1990, Calendar.APRIL, 29);
+		Set<Contact> tempSet = null;
+		test.addNewPastMeeting(tempSet, date, "special day!"); 		
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testAddNewPastMeetingNullDate(){
+		Calendar date = null;
 		Set<Contact> tempSet = test.getContacts(0);
-		Contact[] contactArray = tempSet.toArray(new Contact[1]);
-		List<Meeting> tempList = test.getFutureMeetingList(contactArray[0]);
-		String output = printMeetings(tempList);
-		assertEquals(output, "201501, 0\r\n");
+		test.addNewPastMeeting(tempSet, date, "special day!"); 		
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testAddNewPastMeetingNullNotes(){
+		Calendar date = Calendar.getInstance();
+		date.set(1990, Calendar.APRIL, 29);
+		Set<Contact> tempSet = test.getContacts(0);
+		test.addNewPastMeeting(tempSet, date, null); 		
+	}
+
+	@Test
+	public void testAddMeetingNotes(){
+		System.out.println("***TESTING: testAddMeetingNotes***");
+		test.addNewContact("Alice", "new contact");
+		Set<Contact> tempSet = test.getContacts("Alice");	
+		Calendar date = Calendar.getInstance();
+		int s = date.get(Calendar.SECOND);
+		System.out.println(s);
+		s = s + 1;
+		date.set(Calendar.SECOND, s);
+		int id = test.addFutureMeeting(tempSet, date);
+		wait(date);
+		test.addMeetingNotes(id, "meeting now in past");
+		Meeting m = test.getPastMeeting(id);
+		assertTrue(m instanceof PastMeeting);
 	}
 
 	@Test
@@ -152,7 +281,7 @@ public class TestingContactManagerImpl {
 		System.out.println("***TESTING: testGetContactsInts***");
 		Set<Contact> tempSet = test.getContacts(1);
 		String output = printSet(tempSet);
-		assertEquals(output, "Sam, 1, \r\n");
+		assertEquals(output, "Sam, 1, second person\r\n");
 	}
 
 	@Test
@@ -160,7 +289,7 @@ public class TestingContactManagerImpl {
 		System.out.println("***TESTING: testGetContactsIntsWithMultipleArgs***");
 		Set<Contact> tempSet = test.getContacts(0,1);
 		String output = printSet(tempSet);
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");		
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, second person\r\n");		
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -180,7 +309,7 @@ public class TestingContactManagerImpl {
 		System.out.println("***TESTING: testGetContactsString***");
 		Set<Contact> tempSet = test.getContacts("Sam");
 		String output = printSet(tempSet);
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, second person\r\n");
 	}
 
 	@Test
@@ -188,7 +317,7 @@ public class TestingContactManagerImpl {
 		System.out.println("***TESTING: testGetContactsPartial***");
 		Set<Contact> tempSet = test.getContacts("Sa");
 		String output = printSet(tempSet);
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, \r\n");		
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, second person\r\n");		
 	}
 
 	@Test
@@ -206,6 +335,18 @@ public class TestingContactManagerImpl {
 		Set<Contact> tempSet = test.getContacts(str);
 	}
 
+	@Test(expected=NullPointerException.class)
+	public void testAddNewContactNullName(){
+		System.out.println("***TESTING: testAddNewContactNullName***");
+		test.addNewContact(null, "he is someone");
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testAddNewContactNullNotes(){
+		System.out.println("***TESTING: testAddNewContactNullNotes***");
+		test.addNewContact("Sam", null);
+	}
+
 	@Test
 	public void testMeetingListIsOrdered(){
 		System.out.println("***TESTING: testMeetingListIsOrdered***");
@@ -221,12 +362,6 @@ public class TestingContactManagerImpl {
 		List<Meeting> tempList = test.getAllMeetings();
 		String output = printMeetings(tempList);
 		assertEquals(output, "197001, 1\r\n201501, 0\r\n2015320, 2\r\n");		
-	}
-
-	@Test(expected=IllegalStateException.class)
-	public void testAddMeetingNotes(){
-		System.out.println("***TESTING: testAddNotes***");
-		test.addMeetingNotes(0, "meeting now in past");
 	}
 
 	@Test
@@ -287,7 +422,7 @@ public class TestingContactManagerImpl {
 	@Test
 	public void testDoubleLoadContacts(){
 		System.out.println("***TESTING: testDoubleLoadContacts***");
-		test.addNewContact("Alice", "new contact");
+		test.addNewContact("Alice", ""); //testing empty notes String
 		test.flush();
 		
 		ContactManagerImpl newTest = new ContactManagerImpl();
@@ -299,7 +434,7 @@ public class TestingContactManagerImpl {
 		finalTest.launch();				
 		Set<Contact> tempSet = finalTest.getAllContacts();
 		String output = printSet(tempSet);
-		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, null\r\nAlice, 2, new contact\r\nSergio, 3, more marks plz.\r\n");	
+		assertEquals(output, "Sam, 0, he is someone\r\nSam, 1, second person\r\nAlice, 2, \r\nSergio, 3, more marks plz.\r\n");	
 	}
 
 	//printing methods
@@ -338,8 +473,8 @@ public class TestingContactManagerImpl {
 	* @param Set to be printed
 	* @return Formatted string of meeting IDs and Notes
 	*/
-	public String printMeetings(List<Meeting> list){
-		Iterator<Meeting> iterator = list.iterator();
+	public String printMeetings(List<? extends Meeting> list){
+		Iterator<? extends Meeting> iterator = list.iterator();
 		String result = "";
 
 		while (iterator.hasNext()){	
@@ -349,6 +484,14 @@ public class TestingContactManagerImpl {
 
 		System.out.println(result);
 		return result;
+	}
+
+	private void wait(Calendar threshold){
+		System.out.println("waiting until meeting is in the past...");
+		Calendar now = Calendar.getInstance();
+		while (now.before(threshold)){
+			now = Calendar.getInstance();
+		}
 	}
 
 }
